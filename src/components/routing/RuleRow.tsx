@@ -13,6 +13,7 @@ import { ChevronDown, ChevronUp, GripVertical, Power, Trash2 } from "lucide-reac
 import { Badge } from "../Badge";
 import { Button } from "../Button";
 import { RuleEditor } from "./RuleEditor";
+import { useI18n } from "@/lib/i18n";
 import type { CustomRule, Outbound } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function RuleRow({
   onChange,
   onDelete,
 }: Props) {
+  const { t } = useI18n();
   const {
     attributes,
     listeners,
@@ -99,7 +101,7 @@ export function RuleRow({
         <button
           type="button"
           onClick={() => onChange({ ...rule, enabled: !rule.enabled })}
-          title={rule.enabled ? "Disable rule" : "Enable rule"}
+          title={rule.enabled ? t("common.disabled") : t("common.enabled")}
           className={cn(
             "p-1 rounded-md transition",
             rule.enabled
@@ -113,7 +115,7 @@ export function RuleRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium text-foreground truncate">
-              {rule.label || "(unnamed rule)"}
+              {rule.label || t("routing.unnamedRule")}
             </span>
             <Badge
               variant={
@@ -142,7 +144,7 @@ export function RuleRow({
           variant="ghost"
           size="sm"
           onClick={onToggleExpanded}
-          title={expanded ? "Collapse" : "Expand"}
+          title={expanded ? t("common.close") : t("common.edit")}
         >
           {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </Button>
@@ -151,7 +153,7 @@ export function RuleRow({
           variant="ghost"
           size="sm"
           onClick={onDelete}
-          title="Delete rule"
+          title={t("routing.deleteRule")}
         >
           <Trash2 size={14} />
         </Button>

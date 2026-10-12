@@ -15,6 +15,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { Button } from "../Button";
 import { ProcessPicker } from "./ProcessPicker";
+import { useI18n } from "@/lib/i18n";
 import type { CustomRule, Outbound, RuleAction, RuleMatchers } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,7 @@ const PROTOCOL_OPTIONS = ["http", "tls", "quic", "dns", "stun", "ntp", "ssh", "r
 const ACTION_KINDS: Array<RuleAction["kind"]> = ["route", "reject", "hijack-dns", "sniff", "resolve"];
 
 export function RuleEditor({ rule, outbounds, onChange }: Props) {
+  const { t } = useI18n();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const m = rule.matchers;
   const a = rule.action;
@@ -85,13 +87,13 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
       {/* Label */}
       <div>
         <label className="block text-xs uppercase tracking-wide text-muted-foreground mb-1">
-          Label
+          {t("routing.label")}
         </label>
         <input
           type="text"
           value={rule.label ?? ""}
           onChange={(e) => setLabel(e.target.value)}
-          placeholder="e.g. Work split-tunnel"
+          placeholder={t("routing.labelPlaceholder")}
           className="w-full rounded-md bg-background border border-input px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>
@@ -99,7 +101,7 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
       {/* Action */}
       <div>
         <label className="block text-xs uppercase tracking-wide text-muted-foreground mb-1 font-mono">
-          Action
+          {t("routing.action")}
         </label>
         <div className="flex flex-wrap items-center gap-2">
           {ACTION_KINDS.map((kind) => (
@@ -131,10 +133,10 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
               onChange={(e) => setAction({ kind: "route", outbound: e.target.value })}
               className="w-full rounded-lg bg-[#07080c] border border-border/80 px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-theme-accent focus:border-theme-accent font-mono"
             >
-              <option value="proxy">proxy (selector)</option>
-              <option value="auto">auto (urltest)</option>
-              <option value="direct">direct</option>
-              <option value="block">block</option>
+              <option value="proxy">{t("routing.finalProxySelector")}</option>
+              <option value="auto">{t("routing.finalAutoUrltest")}</option>
+              <option value="direct">{t("common.direct")}</option>
+              <option value="block">{t("common.block")}</option>
               {outbounds
                 .filter((o) => o.protocol !== "unsupported")
                 .map((o) => (
@@ -150,60 +152,60 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
       {/* Matchers — main (always visible) */}
       <div className="space-y-3">
         <ChipField
-          label="Domain (exact)"
+          label={t("routing.domainExact")}
           field="domain"
           values={m.domain}
           placeholder="example.com"
           onChange={(v) => updateArray("domain", v)}
         />
         <ChipField
-          label="Domain suffix"
+          label={t("routing.domainSuffix")}
           field="domain_suffix"
           values={m.domain_suffix}
           placeholder=".example.com"
           onChange={(v) => updateArray("domain_suffix", v)}
         />
         <ChipField
-          label="Domain keyword"
+          label={t("routing.domainKeyword")}
           field="domain_keyword"
           placeholder="substring"
           values={m.domain_keyword}
           onChange={(v) => updateArray("domain_keyword", v)}
         />
         <ChipField
-          label="IP CIDR"
+          label={t("routing.ipCidr")}
           field="ip_cidr"
           values={m.ip_cidr}
           placeholder="10.0.0.0/8"
           onChange={(v) => updateArray("ip_cidr", v)}
         />
         <PortField
-          label="Port"
+          label={t("routing.portRule")}
           field="port"
           values={m.port}
           onChange={(v) => updateArray("port", v)}
         />
         <ChipField
-          label="Port range (e.g. 1000:2000)"
+          label={t("routing.portRange")}
           field="port_range"
           values={m.port_range}
           placeholder="1000:2000"
           onChange={(v) => updateArray("port_range", v)}
         />
         <ChipsPicker
-          label="Network"
+          label={t("routing.network")}
           options={NETWORK_OPTIONS}
           values={(m.network as string[] | undefined) ?? []}
           onToggle={(v) => toggleInArray("network" as ArrayField, v)}
         />
         <ChipsPicker
-          label="Protocol (sniffed)"
+          label={t("routing.protocolSniffed")}
           options={PROTOCOL_OPTIONS}
           values={(m.protocol as string[] | undefined) ?? []}
           onToggle={(v) => toggleInArray("protocol" as ArrayField, v)}
         />
         <ChipField
-          label="Rule-set (tag)"
+          label={t("routing.ruleSetTag")}
           field="rule_set"
           values={m.rule_set}
           placeholder="geoip-cn"
@@ -220,7 +222,7 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
             className="rounded border-input bg-background"
           />
           <label htmlFor={`invert-${rule.id}`} className="text-sm text-foreground/80 select-none">
-            Invert (match everything <em>except</em> these conditions)
+            {t("routing.invert")}
           </label>
         </div>
       </div>
@@ -233,32 +235,32 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
           {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          Advanced matchers
+          {t("routing.advancedMatchers")}
         </button>
         {showAdvanced && (
           <div className="mt-3 space-y-3">
             <ChipField
-              label="Domain regex"
+              label={t("routing.domainRegex")}
               field="domain_regex"
               values={m.domain_regex}
               placeholder="^stun\\..+"
               onChange={(v) => updateArray("domain_regex", v)}
             />
             <ChipField
-              label="Source IP CIDR"
+              label={t("routing.sourceIpCidr")}
               field="source_ip_cidr"
               values={m.source_ip_cidr}
               placeholder="192.168.0.0/16"
               onChange={(v) => updateArray("source_ip_cidr", v)}
             />
             <PortField
-              label="Source port"
+              label={t("routing.sourcePort")}
               field="source_port"
               values={m.source_port}
               onChange={(v) => updateArray("source_port", v)}
             />
             <ChipField
-              label="Process name (Win/Mac)"
+              label={t("routing.processNameWinMac")}
               field="process_name"
               values={m.process_name}
               placeholder="chrome"
@@ -269,14 +271,14 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
               onChange={(v) => updateArray("process_name", v)}
             />
             <ChipField
-              label="Process path"
+              label={t("routing.processPath")}
               field="process_path"
               values={m.process_path}
               placeholder="/usr/bin/curl"
               onChange={(v) => updateArray("process_path", v)}
             />
             <ChipField
-              label="Inbound tag"
+              label={t("routing.inboundTag")}
               field="inbound"
               values={m.inbound}
               placeholder="tun-in"
@@ -298,7 +300,7 @@ export function RuleEditor({ rule, outbounds, onChange }: Props) {
                 className="rounded border-input bg-background"
               />
               <label htmlFor={`private-${rule.id}`} className="text-sm text-foreground/80 select-none">
-                Match non-public (private) IPs
+                {t("routing.matchPrivateIps")}
               </label>
             </div>
           </div>
@@ -319,6 +321,7 @@ interface ChipFieldProps {
 }
 
 function ChipField({ label, values, placeholder, onChange }: ChipFieldProps) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState("");
   const arr = values ?? [];
 
@@ -370,7 +373,7 @@ function ChipField({ label, values, placeholder, onChange }: ChipFieldProps) {
             placeholder={placeholder}
             className="rounded-lg bg-[#07080c] border border-border/80 px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-theme-accent focus:border-theme-accent w-36 font-mono"
           />
-          <Button variant="ghost" size="sm" onClick={add} title="Add">
+          <Button variant="ghost" size="sm" onClick={add} title={t("common.add")}>
             <Plus size={12} />
           </Button>
         </div>
@@ -387,6 +390,7 @@ interface PortFieldProps {
 }
 
 function PortField({ label, values, onChange }: PortFieldProps) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState("");
   const arr = values ?? [];
   const add = () => {
@@ -430,7 +434,7 @@ function PortField({ label, values, onChange }: PortFieldProps) {
             placeholder="443"
             className="rounded-lg bg-[#07080c] border border-border/80 px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-theme-accent focus:border-theme-accent w-24 font-mono"
           />
-          <Button variant="ghost" size="sm" onClick={add} title="Add">
+          <Button variant="ghost" size="sm" onClick={add} title={t("common.add")}>
             <Plus size={12} />
           </Button>
         </div>

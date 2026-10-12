@@ -235,13 +235,13 @@ export function ServersTab({
                 size="sm"
                 variant="outline"
                 onClick={() => {
-                  if (window.confirm("Remove all manually added custom servers?")) onClearAll();
+                  if (window.confirm(t("servers.clearManualConfirm"))) onClearAll();
                 }}
-                title="Remove all custom servers"
+                title={t("servers.clearManual")}
                 className="text-xs text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-3.5 w-3.5 mr-1" />
-                Clear manual
+                {t("servers.clearManual")}
               </Button>
             )}
           </div>
@@ -249,7 +249,7 @@ export function ServersTab({
         <CardContent>
           {manualProfiles.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border/80 bg-[#07080c]/60 p-8 text-center text-sm text-muted-foreground">
-              No custom servers yet. Add individual share-links above.
+              {t("servers.noCustomServers")}
             </div>
           ) : (
             <div className="space-y-2">
@@ -259,7 +259,7 @@ export function ServersTab({
                   outbound={profile.outbound}
                   geoipByIp={geoipByIp}
                   onRemove={() => {
-                    if (window.confirm(`Remove server “${profileLabel(profile.outbound)}”?`)) onRemove(index);
+                    if (window.confirm(t("servers.removeConfirm", { name: profileLabel(profile.outbound) }))) onRemove(index);
                   }}
                 />
               ))}

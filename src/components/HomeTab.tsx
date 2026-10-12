@@ -981,6 +981,7 @@ function GroupedHomeProfileRows({
   onSelectionDone?: () => void;
   mode: "picker" | "grid";
 }) {
+  const { t } = useI18n();
   const grouped = groupHomeProfiles(profiles);
   // Default to collapsed unless explicitly expanded by the user; persisted across tab switches
   const [expanded, setExpanded] = useState<Set<string>>(() =>
@@ -1016,7 +1017,7 @@ function GroupedHomeProfileRows({
     <>
       {grouped.manual.length > 0 && (
         <li className="list-none">
-          <div className="px-2 pb-1 pt-1 text-[10px] uppercase tracking-wider text-muted-foreground">Manual servers</div>
+          <div className="px-2 pb-1 pt-1 text-[10px] uppercase tracking-wider text-muted-foreground">{t("servers.manualServers")}</div>
           {mode === "grid" ? (
             <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
               {grouped.manual.map((row) => (
@@ -1082,6 +1083,7 @@ function ServerPicker({
   geoipByIp: Record<string, string>;
   onSelect: (i: number) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -1107,8 +1109,8 @@ function ServerPicker({
   const selectedDisplay = selected
     ? connectionProfileDisplay(selected, readyProfileMetadata, geoipByIp, latencyByTag)
     : null;
-  const selectedFlag = selectedDisplay ?? { flag: "🌐", code: "??", label: "No servers", ms: undefined, key: "none", protocol: "" };
-  const selectedName = selectedDisplay?.label ?? "No servers";
+  const selectedFlag = selectedDisplay ?? { flag: "🌐", code: "??", label: t("servers.noServers"), ms: undefined, key: "none", protocol: "" };
+  const selectedName = selectedDisplay?.label ?? t("servers.noServers");
   const selectedMs = selectedDisplay?.ms;
 
   return (
@@ -1170,7 +1172,7 @@ function ServerPicker({
                   ∞
                 </span>
                 <span className="flex-1 truncate font-medium">
-                  Auto (best latency)
+                  {t("servers.autoBestLatency")}
                 </span>
                 <span className="font-mono text-[10px] text-muted-foreground">
                   urltest

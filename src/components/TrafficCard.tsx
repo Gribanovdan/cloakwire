@@ -3,6 +3,7 @@ import { Activity, ArrowDownToLine, ArrowUpToLine } from "lucide-react";
 import { Badge } from "./Badge";
 import { cn } from "@/lib/utils";
 import { useTrafficStream } from "@/hooks/useTrafficStream";
+import { useI18n } from "@/lib/i18n";
 import type { Status, TrafficSample } from "@/lib/types";
 
 interface Props {
@@ -67,6 +68,7 @@ const WIDTH = 560;
 const HEIGHT = 80;
 
 export function TrafficCard({ status, profileCount, forceDemo }: Props) {
+  const { t } = useI18n();
   const live = status === "running" || !!forceDemo;
   const { samples, current } = useTrafficStream(live, profileCount);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -95,42 +97,40 @@ export function TrafficCard({ status, profileCount, forceDemo }: Props) {
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
             <Activity className="h-4 w-4 text-muted-foreground" />
-            Traffic
+            {t("traffic.title")}
             <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
-                          </Badge>
+            </Badge>
           </h3>
           {live ? (
             <Badge variant="default" className="px-1.5 py-0 text-[10px]">
-              live
+              {t("traffic.liveBadge")}
             </Badge>
           ) : (
             <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-              not running
+              {t("traffic.notRunningBadge")}
             </Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Live upload / download speed, fed by sing-box's{" "}
-          <code className="font-mono">/traffic</code> WebSocket.
+          {t("traffic.desc")}
         </p>
       </div>
       <div className="space-y-3 p-5 pt-0">
         {!live ? (
           <p className="rounded border border-border bg-card/40 p-3 text-[11px] text-muted-foreground">
-            Connect to start streaming. The chart fills as samples arrive
-            from the WebSocket.
+            {t("traffic.connectNotice")}
           </p>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
               <RateBox
-                label="Download"
+                label={t("home.download")}
                 value={current?.down_bps ?? 0}
                 total={current?.down_total ?? 0}
                 direction="down"
               />
               <RateBox
-                label="Upload"
+                label={t("home.upload")}
                 value={current?.up_bps ?? 0}
                 total={current?.up_total ?? 0}
                 direction="up"
@@ -141,7 +141,7 @@ export function TrafficCard({ status, profileCount, forceDemo }: Props) {
               className="rounded border border-border bg-card/40 p-3"
             >
               <Chart
-                title="Download"
+                title={t("home.download")}
                 values={downSeries}
                 width={width}
                 height={HEIGHT}
@@ -150,7 +150,7 @@ export function TrafficCard({ status, profileCount, forceDemo }: Props) {
               />
               <div className="mt-3" />
               <Chart
-                title="Upload"
+                title={t("home.upload")}
                 values={upSeries}
                 width={width}
                 height={HEIGHT}
@@ -158,8 +158,11 @@ export function TrafficCard({ status, profileCount, forceDemo }: Props) {
                 tone="muted"
               />
               <p className="mt-2 text-[10px] text-muted-foreground">
-                last {samples.length} samples · max down{" "}
-                {formatBytes(maxDown)} · max up {formatBytes(maxUp)}
+                {t("traffic.samplesStats", {
+                  count: samples.length,
+                  down: formatBytes(maxDown),
+                  up: formatBytes(maxUp),
+                })}
               </p>
             </div>
           </>

@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import type { ProxiesResponse, StatusReport, ProxyInfo } from "@/lib/types";
 
 const inTauri =
@@ -63,6 +64,7 @@ interface Props {
 }
 
 export function ProxiesCard({ status }: Props) {
+  const { t } = useI18n();
   const [data, setData] = useState<ProxiesResponse | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -172,29 +174,29 @@ export function ProxiesCard({ status }: Props) {
           <div className="flex items-center gap-2">
             <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
               <Network className="h-4 w-4 text-theme-accent" />
-              Proxies
+              {t("proxies.title")}
               <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
                 {groups.length}
               </Badge>
             </h3>
             {capability === "available" ? (
               <Badge variant="default" className="px-1.5 py-0 text-[10px]">
-                live
+                {t("proxies.liveBadge")}
               </Badge>
             ) : capability === "xray_unsupported" ? (
               <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-                unavailable
+                {t("proxies.unavailableBadge")}
               </Badge>
             ) : (
               <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-                not running
+                {t("proxies.notRunningBadge")}
               </Badge>
             )}
           </div>
           <p className="text-xs text-muted-foreground">
             {isXrayUnsupported
-              ? "Proxy groups and Clash latency tests are available for sing-box connections."
-              : "Switch the active outbound and measure latency via the Clash API."}
+              ? t("proxies.singboxOnlyHint")
+              : t("proxies.clashApiHint")}
           </p>
         </div>
         <ChevronDown
@@ -208,9 +210,7 @@ export function ProxiesCard({ status }: Props) {
         <div className="space-y-2 p-5 pt-0">
           {isXrayUnsupported ? (
             <p className="rounded border border-border bg-card/40 p-3 text-[11px] text-muted-foreground">
-              Proxy groups and Clash latency tests are available for sing-box
-              connections. To change an Xray server, select another profile on
-              Home.
+              {t("proxies.xraySwitchNotice")}
             </p>
           ) : (
             <>
@@ -219,15 +219,12 @@ export function ProxiesCard({ status }: Props) {
               )}
               {!isRunning && (
                 <p className="rounded border border-border bg-card/40 p-3 text-[11px] text-muted-foreground">
-                  Start sing-box to populate the proxy list. Open the Config
-                  builder, click <strong>Generate</strong>, then <strong>Start</strong>.
+                  {t("proxies.startNotice")}
                 </p>
               )}
               {isRunning && groups.length === 0 && (
                 <p className="rounded border border-border bg-card/40 p-3 text-[11px] text-muted-foreground">
-                  No selector / URLTest groups found. Make sure the config has
-                  a <code className="font-mono">selector</code> outbound tagged{" "}
-                  <code className="font-mono">proxy</code>.
+                  {t("proxies.noGroupsFound")}
                 </p>
               )}
               <div className="space-y-2">
@@ -272,6 +269,7 @@ function ProxyGroup({
   disabled: boolean;
   extraLatency: Record<string, number | null>;
 }) {
+  const { t } = useI18n();
   const isSelector = info.type === "Selector";
   const isUrlTest = info.type === "URLTest";
 
@@ -316,7 +314,7 @@ function ProxyGroup({
             className="h-7 w-7"
             onClick={() => onTest(name)}
             disabled={testing === name}
-            title="Test latency"
+            title={t("proxies.testLatency")}
           >
             {testing === name ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -345,7 +343,7 @@ function ProxyGroup({
                 (!isSelector || disabled) && "cursor-default",
                 isSelector && !disabled && "cursor-pointer",
               )}
-              title={isSelector ? `Switch ${name} → ${member}` : member}
+              title={isSelector ? t("proxies.switchProxyTitle", { group: name, member }) : member}
             >
               {active ? (
                 <Activity className="h-3.5 w-3.5 text-foreground" />
@@ -355,7 +353,7 @@ function ProxyGroup({
               <span className="truncate font-mono text-[11px]">{member}</span>
               {isSelector && (
                 <span className="ml-auto text-[10px] text-muted-foreground">
-                  select
+                  {t("proxies.select")}
                 </span>
               )}
               {!isSelector && memberDelay != null && (

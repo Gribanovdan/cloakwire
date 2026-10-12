@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { previewToSingboxJson } from "./previewConfig";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { runLeakDiagnostics, type LeakTestResult } from "@/lib/leakTest";
+import { useI18n } from "@/lib/i18n";
 import type { GeneratorSettings, KillSwitchMode, Outbound, TunnelMode } from "@/lib/types";
 
 const inTauri =
@@ -99,6 +100,7 @@ export function ConfigBuilder({
   onResetSettings,
   onConfigPath,
 }: Props) {
+  const { t } = useI18n();
   const [configText, setConfigText] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -143,10 +145,10 @@ export function ConfigBuilder({
     setTestingLeaks(true);
     setLeakResult(null);
     try {
-      const res = await runLeakDiagnostics();
+      const res = await runLeakDiagnostics(undefined, (k, vars) => t(k as any, vars));
       setLeakResult(res);
     } catch (e) {
-      setError(`Ошибка проверки утечек: ${e instanceof Error ? e.message : String(e)}`);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setTestingLeaks(false);
     }
@@ -156,9 +158,9 @@ export function ConfigBuilder({
     setResettingFirewall(true);
     try {
       await api.cleanupKillSwitch();
-      setFirewallResetMsg("Правила брандмауэра успешно сброшены.");
+      setFirewallResetMsg(t("config.firewallSuccess"));
     } catch (e) {
-      setFirewallResetMsg(`Ошибка сброса: ${e instanceof Error ? e.message : String(e)}`);
+      setFirewallResetMsg(t("config.firewallError", { error: e instanceof Error ? e.message : String(e) }));
     } finally {
       setResettingFirewall(false);
       setTimeout(() => setFirewallResetMsg(null), 4000);
@@ -186,8 +188,8 @@ export function ConfigBuilder({
       onConfigPath(null);
       setInfo(
         profiles.length === 0
-          ? "Generated skeleton (no profiles yet — add some and re-generate)."
-          : `Generated config for ${profiles.length} profile${profiles.length === 1 ? "" : "s"}.`,
+          ? t("config.skeletonGenerated")
+          : t("config.configGenerated", { count: profiles.length }),
       );
     } catch (e) {
       setError((e as Error).message);
@@ -239,7 +241,7 @@ export function ConfigBuilder({
         path = picked;
       }
       onConfigPath(path);
-      setInfo(`Saved to ${path}`);
+      setInfo(t("config.savedTo", { path }));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -247,13 +249,36 @@ export function ConfigBuilder({
     }
   };
 
+  const tunnelModes: { value: TunnelMode; label: string; hint: string }[] = [
+    {
+      value: "tun",
+      label: "TUN",
+      hint: t("config.tunHint"),
+    },
+    {
+      value: "system_proxy",
+      label: t("home.systemProxy"),
+      hint: t("config.systemProxyHint"),
+    },
+    {
+      value: "both",
+      label: t("common.both"),
+      hint: t("config.bothHint"),
+    },
+    {
+      value: "none",
+      label: t("common.none"),
+      hint: t("config.noneHint"),
+    },
+  ];
+
   return (
     <Card className="bento-card">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="flex items-center gap-2">
             <FileCog className="h-4 w-4 text-theme-accent" />
-            Config builder
+            {t("config.builderTitle")}
             <Badge variant="secondary" className="badge-theme ml-1 px-1.5 py-0 text-[10px]">
               {profiles.length}
             </Badge>
@@ -262,25 +287,24 @@ export function ConfigBuilder({
             size="sm"
             variant="ghost"
             onClick={onResetSettings}
-            title="Reset all settings (tunnel mode, routing, DNS, port) to defaults"
+            title={t("config.resetTooltip")}
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Reset
+            {t("config.resetBtn")}
           </Button>
         </div>
         <CardDescription>
-          Bundles the parsed profiles into a sing-box config with TUN, DNS,
-          routing and the Clash API. Generated from the profiles above.
+          {t("config.builderDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Tunnel mode picker */}
         <div className="space-y-1.5">
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Tunnel
+            {t("config.tunnelMode")}
           </p>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {TUNNEL_MODES.map((m) => {
+            {tunnelModes.map((m) => {
               const active = settings.tunnel_mode === m.value;
               return (
                 <button
@@ -308,7 +332,7 @@ export function ConfigBuilder({
             This block now only contains network/transport + DNS settings. */}
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <label className="flex items-center gap-2 rounded-md border border-border bg-card/30 px-2 py-1.5 text-xs">
-            <span className="text-muted-foreground">Mixed port</span>
+            <span className="text-muted-foreground">{t("config.mixedPort")}</span>
             <input
               type="number"
               min={1}
@@ -324,7 +348,7 @@ export function ConfigBuilder({
             />
           </label>
           <label className="flex items-center gap-2 rounded-md border border-border bg-card/30 px-2 py-1.5 text-xs">
-            <span className="text-muted-foreground">TUN interface</span>
+            <span className="text-muted-foreground">{t("config.tunInterface")}</span>
             <input
               type="text"
               placeholder="singbox-tun"
@@ -333,11 +357,11 @@ export function ConfigBuilder({
               onChange={(e) =>
                 update("tun_interface_name", e.target.value || null)
               }
-              title="Leave blank for the sing-box default ('singbox-tun' on most platforms)"
+              title={t("config.tunInterfaceHint")}
             />
           </label>
           <label className="flex items-center gap-2 rounded-md border border-border bg-card/30 px-2 py-1.5 text-xs">
-            <span className="text-muted-foreground">Local DNS</span>
+            <span className="text-muted-foreground">{t("config.localDns")}</span>
             <input
               type="text"
               placeholder="1.1.1.1"
@@ -346,11 +370,11 @@ export function ConfigBuilder({
               onChange={(e) =>
                 update("local_dns", e.target.value || null)
               }
-              title="Plain-UDP DNS server (e.g. 1.1.1.1, 8.8.8.8). Avoid hostnames — they require a working DNS to resolve, which is exactly what this server is supposed to provide."
+              title={t("config.localDnsHint")}
             />
           </label>
           <label className="flex items-center gap-2 rounded-md border border-border bg-card/30 px-2 py-1.5 text-xs">
-            <span className="text-muted-foreground">Remote DNS</span>
+            <span className="text-muted-foreground">{t("config.remoteDns")}</span>
             <input
               type="text"
               placeholder="https://8.8.8.8/dns-query"
@@ -359,7 +383,7 @@ export function ConfigBuilder({
               onChange={(e) =>
                 update("remote_dns", e.target.value || null)
               }
-              title="DoH / DoT / DoQ endpoint. Resolved through the proxy. IP form is safer than a hostname."
+              title={t("config.remoteDnsHint")}
             />
           </label>
         </div>
@@ -369,16 +393,16 @@ export function ConfigBuilder({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-theme-accent">
               <ShieldCheck className="h-4 w-4" />
-              <span>Безопасность и защита от утечек</span>
+              <span>{t("config.securityTitle")}</span>
             </div>
             <button
               type="button"
               onClick={handleResetFirewall}
               disabled={resettingFirewall}
               className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
-              title="Экстренный сброс правил брандмауэра Windows"
+              title={t("config.resetFirewallTooltip")}
             >
-              {resettingFirewall ? "Сброс..." : "Сбросить файрвол"}
+              {resettingFirewall ? t("config.firewallResetting") : t("config.resetFirewall")}
             </button>
           </div>
 
@@ -388,13 +412,11 @@ export function ConfigBuilder({
             </div>
           )}
 
-
-
           {/* Leak Diagnostics */}
           <div className="pt-1">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
-                Диагностика утечек (IP, DNS, WebRTC):
+                {t("config.leakDiagTitle")}
               </span>
               <Button
                 size="sm"
@@ -406,12 +428,12 @@ export function ConfigBuilder({
                 {testingLeaks ? (
                   <>
                     <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                    Тестирование...
+                    {t("config.testingLeaks")}
                   </>
                 ) : (
                   <>
                     <Shield className="mr-1.5 h-3 w-3" />
-                    Проверить утечки
+                    {t("config.runLeakTest")}
                   </>
                 )}
               </Button>
@@ -431,10 +453,10 @@ export function ConfigBuilder({
                 <div className="flex items-center justify-between font-semibold">
                   <span>
                     {leakResult.verdict === "protected"
-                      ? "✓ Защищен: утечек не обнаружено"
+                      ? t("config.protectedVerdict")
                       : leakResult.verdict === "leaking"
-                        ? "⚠ Внимание: Обнаружена утечка данных!"
-                        : "Результат проверки"}
+                        ? t("config.leakWarningVerdict")
+                        : t("config.resultVerdict")}
                   </span>
                   <span className="text-[10px] font-mono opacity-70">
                     {new Date(leakResult.timestamp).toLocaleTimeString()}
@@ -442,18 +464,18 @@ export function ConfigBuilder({
                 </div>
                 <div className="text-[11px] space-y-0.5 text-foreground/90">
                   <div>
-                    <span className="text-muted-foreground">Внешний IP:</span>{" "}
+                    <span className="text-muted-foreground">{t("config.externalIp")}:</span>{" "}
                     <span className="font-mono font-medium">{leakResult.publicIp}</span> ({leakResult.country}, {leakResult.isp})
                   </div>
                   {leakResult.dnsServer && (
                     <div>
-                      <span className="text-muted-foreground">DNS:</span>{" "}
+                      <span className="text-muted-foreground">{t("config.dnsServer")}:</span>{" "}
                       <span className="font-mono">{leakResult.dnsServer}</span>
                     </div>
                   )}
                   {leakResult.webrtcIps.length > 0 && (
                     <div>
-                      <span className="text-muted-foreground">WebRTC IP:</span>{" "}
+                      <span className="text-muted-foreground">{t("config.webrtcIp")}:</span>{" "}
                       <span className="font-mono">{leakResult.webrtcIps.join(", ")}</span>
                     </div>
                   )}
@@ -531,7 +553,7 @@ export function ConfigBuilder({
             ) : (
               <Settings2 className="h-3.5 w-3.5" />
             )}
-            Generate
+            {t("config.generate")}
           </Button>
           <Button
             size="sm"
@@ -544,7 +566,7 @@ export function ConfigBuilder({
             ) : (
               <Save className="h-3.5 w-3.5" />
             )}
-            Save
+            {t("common.save")}
           </Button>
           <Button
             size="sm"
@@ -557,14 +579,12 @@ export function ConfigBuilder({
             ) : (
               <Copy className="h-3.5 w-3.5" />
             )}
-            Copy
+            {copied ? t("common.copied") : t("common.copy")}
           </Button>
         </div>
 
         <p className="text-[10px] text-muted-foreground">
-          Start the tunnel from the <span className="font-medium">Home</span> tab
-          (Connect button). The Config tab is for editing the
-          generated config and exporting it.
+          {t("config.startNotice")}
         </p>
 
         {error && (

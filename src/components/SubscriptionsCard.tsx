@@ -70,29 +70,29 @@ export function SubscriptionsCard({
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
-          Provider URLs stay in the Rust backend. The UI receives only sanitized status, usage and expiry metadata.
+          {t("servers.providerMetaNote")}
         </p>
       </div>
       <div className="space-y-2 p-5 pt-0">
         {adding && (
           <div className="space-y-2 rounded-md border border-border bg-card/40 p-3">
-            <input type="text" placeholder="Name (optional)" value={draftName} onChange={(event) => setDraftName(event.target.value)} className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs" />
+            <input type="text" placeholder={t("servers.nameOptional")} value={draftName} onChange={(event) => setDraftName(event.target.value)} className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs" />
             <input type="url" placeholder="https://provider.example.com/sub?token=…" value={draftUrl} onChange={(event) => setDraftUrl(event.target.value)} className="w-full rounded border border-input bg-background px-2 py-1.5 font-mono text-[11px]" />
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                refresh every
+                {t("servers.refreshEvery")}
                 <select value={draftInterval} onChange={(event) => setDraftInterval(parseInt(event.target.value, 10))} className="rounded border border-input bg-background px-1 py-0.5 font-mono text-[11px]">
-                  <option value={15}>15 min</option><option value={30}>30 min</option><option value={60}>1 h</option><option value={360}>6 h</option><option value={1440}>daily</option>
+                  <option value={15}>15 min</option><option value={30}>30 min</option><option value={60}>1 h</option><option value={360}>6 h</option><option value={1440}>{t("servers.daily")}</option>
                 </select>
               </label>
-              <Button size="sm" onClick={onSubmit} disabled={!draftUrl.trim()} className="ml-auto">Add</Button>
+              <Button size="sm" onClick={onSubmit} disabled={!draftUrl.trim()} className="ml-auto">{t("common.add")}</Button>
             </div>
           </div>
         )}
 
         {subs.length === 0 && !adding && (
           <p className="rounded border border-border bg-card/40 p-3 text-[11px] text-muted-foreground">
-            No subscriptions yet. Click <strong>+</strong> to add a URL. Stored securely by the backend.
+            {t("servers.noSubscriptionsHint")}
           </p>
         )}
 
@@ -104,7 +104,7 @@ export function SubscriptionsCard({
               loading={!!fetching[subscription.id]}
               onRefresh={() => onRefresh(subscription.id)}
               onRemove={() => {
-                if (window.confirm(`Remove subscription “${subscription.name}” and all of its imported servers?`)) onRemove(subscription.id);
+                if (window.confirm(t("servers.removeSubscriptionConfirm", { name: subscription.name }))) onRemove(subscription.id);
               }}
               onIntervalChange={(minutes) => onIntervalChange(subscription.id, minutes)}
               onSelectChild={(childKey) => onSelectChild(subscription.id, childKey)}
@@ -124,6 +124,7 @@ function SubscriptionRow({ sub, loading, onRefresh, onRemove, onIntervalChange, 
   onIntervalChange: (minutes: number) => void;
   onSelectChild: (childKey: string) => void;
 }) {
+  const { t } = useI18n();
   const fetched = sub.last_success_at ? new Date(sub.last_success_at).toLocaleString() : "—";
   const title = sub.metadata.profile_title?.trim();
   const engine = sub.kind === "link_list" ? "sing-box" : sub.engine === "xray" ? "Xray" : sub.engine === "singbox" ? "sing-box" : null;
@@ -135,27 +136,27 @@ function SubscriptionRow({ sub, loading, onRefresh, onRemove, onIntervalChange, 
         <Rss className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate text-sm font-medium" title={sub.name}>{sub.name}</span>
         {engine && <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">{engine}</Badge>}
-        <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{serverCount} server{serverCount === 1 ? "" : "s"}</Badge>
+        <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{t("servers.nodesCount", { count: serverCount })}</Badge>
         {sub.last_error && (
           <span className="rounded bg-destructive/10 px-1.5 py-0 text-[10px] text-destructive" title={sub.last_error.message}>
             {sub.last_error.kind || "error"}
           </span>
         )}
         <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRefresh} disabled={loading} title="Refresh now">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRefresh} disabled={loading} title={t("servers.refreshNow")}>
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRemove} title="Remove subscription">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRemove} title={t("servers.deleteSubscription")}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
-      {title && title !== sub.name && <p className="mt-1 truncate text-[11px] text-muted-foreground">Provider: {title}</p>}
+      {title && title !== sub.name && <p className="mt-1 truncate text-[11px] text-muted-foreground">{t("servers.provider", { name: title })}</p>}
 
       <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-        <span>last: {fetched}</span><span>·</span>
-        <span className={cn(sub.last_error ? "text-destructive" : "text-foreground/70")}>{sub.last_error?.message ?? "ready"}</span><span>·</span>
+        <span>{t("servers.lastUpdated")}: {fetched}</span><span>·</span>
+        <span className={cn(sub.last_error ? "text-destructive" : "text-foreground/70")}>{sub.last_error?.message ?? t("common.ready")}</span><span>·</span>
         <select value={sub.interval_minutes} onChange={(event) => onIntervalChange(parseInt(event.target.value, 10))} className="rounded border border-input bg-background px-1 py-0 font-mono text-[10px]">
           <option value={15}>15m</option><option value={30}>30m</option><option value={60}>1h</option><option value={360}>6h</option><option value={1440}>24h</option>
         </select>
@@ -181,6 +182,7 @@ function SubscriptionRow({ sub, loading, onRefresh, onRemove, onIntervalChange, 
 }
 
 function MetadataSummary({ metadata }: { metadata: ProviderMetadata }) {
+  const { t } = useI18n();
   const upload = metadata.upload_bytes ?? metadata.userinfo?.upload ?? null;
   const download = metadata.download_bytes ?? metadata.userinfo?.download ?? null;
   const total = metadata.total_bytes ?? metadata.userinfo?.total ?? null;
@@ -195,16 +197,16 @@ function MetadataSummary({ metadata }: { metadata: ProviderMetadata }) {
       {(used != null || total != null) && (
         <>
           <div className="flex justify-between gap-3">
-            <span>Traffic: {used == null ? "—" : formatBytes(used)} used</span>
-            {total != null && <span>{formatBytes(Math.max(0, total - (used ?? 0)))} remaining / {formatBytes(total)}</span>}
+            <span>{t("servers.trafficUsed", { used: used == null ? "—" : formatBytes(used) })}</span>
+            {total != null && <span>{t("servers.trafficRemaining", { remaining: formatBytes(Math.max(0, total - (used ?? 0))), total: formatBytes(total) })}</span>}
           </div>
           {percent != null && <div className="h-1 overflow-hidden rounded bg-muted"><div className="h-full rounded bg-primary" style={{ width: `${percent}%` }} /></div>}
         </>
       )}
       <div className="flex flex-wrap gap-x-3 gap-y-1">
-        {expires && <span>Expires: {formatDate(expires)}</span>}
-        {metadata.profile_web_page_url && <MetadataLink label="Provider page" url={metadata.profile_web_page_url} />}
-        {metadata.support_url && <MetadataLink label="Support" url={metadata.support_url} />}
+        {expires && <span>{t("servers.expireDate")}: {formatDate(expires)}</span>}
+        {metadata.profile_web_page_url && <MetadataLink label={t("servers.providerPage")} url={metadata.profile_web_page_url} />}
+        {metadata.support_url && <MetadataLink label={t("servers.support")} url={metadata.support_url} />}
       </div>
     </div>
   );

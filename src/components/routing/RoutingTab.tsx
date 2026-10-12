@@ -85,7 +85,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
 
   const onResetRouting = () => {
     if (r.rules.length > 0 || r.rule_sets.length > 0 || r.vpn_processes.length > 0 || r.direct_processes.length > 0) {
-      if (!confirm("Reset all routing rules, rule-sets and process pickers? Tunnel/DNS/port settings are not affected.")) return;
+      if (!confirm(t("routing.resetConfirm"))) return;
     }
     updateRouting(DEFAULT_ROUTING);
   };
@@ -146,7 +146,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
             size="sm"
             onClick={onResetRouting}
             disabled={!isTunActive}
-            title={isTunActive ? t("common.refresh") : "TUN mode required"}
+            title={isTunActive ? t("common.refresh") : t("routing.switchToTunToEdit")}
           >
             <RotateCcw size={14} className="mr-1" />
             {t("common.refresh")}
@@ -154,21 +154,12 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
         </div>
       </div>
 
-      {/* TUN-required banner. The tab is read-only when the user is
-          on system_proxy / none, because process-level matchers
-          (`process_name` / `process_path`) — the whole point of the
-          simple-UX pickers — never fire without a TUN interface. */}
+      {/* TUN-required banner */}
       {!isTunActive && (
         <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-300 flex items-start gap-2">
           <Network size={14} className="mt-0.5 flex-shrink-0" />
           <div className="min-w-0">
-            <strong>Routing requires TUN mode.</strong> Process-based
-            rules (the pickers below) only work when sing-box is
-            capturing traffic at the OS level. Switch to{" "}
-            <code className="font-mono bg-amber-500/20 rounded px-1">TUN</code>{" "}
-            or <code className="font-mono bg-amber-500/20 rounded px-1">TUN + system proxy</code>{" "}
-            in the <strong>Config</strong> tab to enable routing.
-            Current mode: <code className="font-mono bg-amber-500/20 rounded px-1">{settings.tunnel_mode}</code>.
+            {t("routing.tunRequiredBanner", { mode: settings.tunnel_mode })}
           </div>
         </div>
       )}
@@ -176,8 +167,8 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
       {/* Simple UX: two process-picker cards. */}
       <ProcessPickerCard
         icon={<Shield size={18} className="text-theme-accent" />}
-        title="Apps via VPN"
-        description="Traffic from these programs goes through the VPN. Everything else stays direct."
+        title={t("routing.appsViaVpnTitle")}
+        description={t("routing.appsViaVpnDesc")}
         accent="vpn"
         selected={r.vpn_processes}
         onChange={(next) => updateRouting({ vpn_processes: next })}
@@ -185,8 +176,8 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
       />
       <ProcessPickerCard
         icon={<ShieldOff size={18} className="text-theme-accent" />}
-        title="Apps direct"
-        description="Always bypass the VPN, even if a rule-set or final outbound would otherwise route them via proxy. For most users, leave empty."
+        title={t("routing.appsDirectTitle")}
+        description={t("routing.appsDirectDesc")}
         accent="direct"
         selected={r.direct_processes}
         onChange={(next) => updateRouting({ direct_processes: next })}
@@ -198,14 +189,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
         <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300 flex items-start gap-2">
           <TriangleAlert size={14} className="mt-0.5 flex-shrink-0" />
           <div>
-            <strong>Same program in both lists:</strong>{" "}
-            {overlapProcessNames.map((n, i) => (
-              <span key={n}>
-                <code className="font-mono mx-0.5 bg-amber-500/20 rounded px-1">{n}</code>
-                {i < overlapProcessNames.length - 1 ? ", " : ""}
-              </span>
-            ))}
-            . It will go <em>direct</em> (the direct list wins). Remove it from one of the lists if you meant otherwise.
+            {t("routing.sameProgramWarning", { programs: overlapProcessNames.join(", ") })}
           </div>
         </div>
       )}
@@ -214,15 +198,15 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
       <details className="bento-card rounded-2xl p-4 transition open:p-5">
         <summary className="cursor-pointer select-none px-2 py-1 text-sm font-semibold text-foreground hover:text-theme-accent flex items-center gap-2 list-none [&::-webkit-details-marker]:hidden">
           <span className="advanced-arrow text-xs text-muted-foreground" />
-          Advanced Rules & Route Engine
+          {t("routing.advancedRulesTitle")}
           {(r.rules.length > 0 || r.rule_sets.length > 0) && (
             <span className="text-[10px] text-muted-foreground font-mono">
-              ({r.rules.length} rule{r.rules.length === 1 ? "" : "s"}, {r.rule_sets.length} rule-set{r.rule_sets.length === 1 ? "" : "s"})
+              {t("routing.rulesAndSetsCount", { rules: r.rules.length, ruleSets: r.rule_sets.length })}
             </span>
           )}
           {!isTunActive && (
             <span className="ml-auto text-[10px] uppercase tracking-wide text-amber-700 dark:text-amber-300 font-medium">
-              read-only
+              {t("common.readOnly")}
             </span>
           )}
         </summary>
@@ -244,7 +228,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
                   onChange={(e) => updateRouting({ sniff: e.target.checked })}
                   className="rounded border-input bg-background accent-brand focus:ring-brand"
                 />
-                Sniff protocol (HTTP/TLS/QUIC)
+                {t("routing.sniffProtocol")}
               </label>
               <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
                 <input
@@ -253,19 +237,19 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
                   onChange={(e) => updateRouting({ auto_detect_interface: e.target.checked })}
                   className="rounded border-input bg-background accent-brand focus:ring-brand"
                 />
-                Auto-detect interface
+                {t("routing.autoDetectInterface")}
               </label>
               <div>
-                <label className="block text-xs text-muted-foreground mb-1">Final outbound</label>
+                <label className="block text-xs text-muted-foreground mb-1">{t("routing.finalOutbound")}</label>
                 <select
                   value={r.final_outbound}
                   onChange={(e) => updateRouting({ final_outbound: e.target.value })}
                   className="w-full rounded-md bg-[#0b0c12] border border-border/80 px-2 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-theme-accent focus:border-theme-accent"
                 >
-                  <option value="direct">direct (default for the simple UX)</option>
-                  <option value="proxy">proxy (selector)</option>
-                  <option value="auto">auto (urltest)</option>
-                  <option value="block">block</option>
+                  <option value="direct">{t("routing.finalDirectSimple")}</option>
+                  <option value="proxy">{t("routing.finalProxySelector")}</option>
+                  <option value="auto">{t("routing.finalAutoUrltest")}</option>
+                  <option value="block">{t("routing.finalBlock")}</option>
                   {profiles
                     .filter((o) => o.protocol !== "unsupported")
                     .map((p) => (
@@ -281,13 +265,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
           {/* Warning: rules reference missing rule-sets */}
           {missingRuleSetTags.length > 0 && (
             <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive-foreground">
-              ⚠ Rules reference rule-set{missingRuleSetTags.length > 1 ? "s" : ""} that aren&apos;t enabled:{" "}
-              {missingRuleSetTags.map((t) => (
-                <code key={t} className="mx-0.5 font-mono bg-destructive/20 text-destructive-foreground rounded px-1">
-                  {t}
-                </code>
-              ))}
-              . Add them from the picker below or they&apos;ll be silently dropped.
+              ⚠ {t("routing.missingRuleSetsWarning", { tags: missingRuleSetTags.join(", ") })}
             </div>
           )}
 
@@ -296,7 +274,9 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
             className={cn(!isTunActive && "pointer-events-none opacity-60")}
             aria-disabled={!isTunActive}
           >
-            <h3 className="text-sm font-medium text-foreground mb-2">Custom rules ({r.rules.length})</h3>
+            <h3 className="text-sm font-medium text-foreground mb-2">
+              {t("routing.customRulesCount", { count: r.rules.length })}
+            </h3>
             <RuleList
               rules={r.rules}
               outbounds={profiles.filter(
@@ -327,23 +307,21 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
             <PresetPicker onAddRule={onAddRule} onAddRuleSet={onAddRuleSet} />
           </div>
 
-          {/* JSON preview stays interactive (just viewing) — useful
-              for the user to see what their existing config looks
-              like while they decide whether to switch to TUN. */}
+          {/* JSON preview stays interactive */}
           <div className="flex items-center justify-end">
             <Button variant="ghost" size="sm" onClick={() => setJsonOpen(!jsonOpen)}>
-              {jsonOpen ? "Hide JSON" : "Show JSON"}
+              {jsonOpen ? t("routing.hideJson") : t("routing.showJson")}
             </Button>
           </div>
           {jsonOpen && (
             <div className="rounded-xl border border-border/80 bg-[#07080c] p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs uppercase tracking-wide text-muted-foreground font-mono">
-                  Generated sing-box route block (informational)
+                  {t("routing.jsonTitle")}
                 </span>
-                <Button variant="ghost" size="sm" onClick={onCopyJson} title="Copy JSON">
+                <Button variant="ghost" size="sm" onClick={onCopyJson} title={t("common.copy")}>
                   <Copy size={12} className="mr-1" />
-                  {jsonCopied ? "Copied" : "Copy"}
+                  {jsonCopied ? t("common.copied") : t("common.copy")}
                 </Button>
               </div>
               <pre className="text-xs text-theme-accent/90 overflow-x-auto whitespace-pre-wrap font-mono">
@@ -380,6 +358,7 @@ function ProcessPickerCard({
   onChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <section
       className={cn(
@@ -399,9 +378,9 @@ function ProcessPickerCard({
       {/* Selected chips. Empty state shows a tiny hint. */}
       {selected.length === 0 ? (
         <div className="text-xs text-muted-foreground italic">
-          No programs picked. {accent === "vpn"
-            ? "Anything you add here will go through the VPN."
-            : "Anything you add here will always go direct, ignoring the proxy."}
+          {accent === "vpn"
+            ? t("routing.noAppsPickedVpn")
+            : t("routing.noAppsPickedDirect")}
         </div>
       ) : (
         <div className="flex flex-wrap gap-1.5">
@@ -422,8 +401,8 @@ function ProcessPickerCard({
                   : "border-border/80 bg-secondary/80 text-muted-foreground",
                 disabled && "cursor-not-allowed hover:opacity-100",
               )}
-              title={disabled ? "Switch to TUN mode to edit" : `Remove ${name}`}
-              aria-label={`Remove ${name} from ${accent === "vpn" ? "Apps via VPN" : "Apps direct"}`}
+              title={disabled ? t("routing.switchToTunToEdit") : t("routing.removeApp", { name })}
+              aria-label={t("routing.removeApp", { name })}
             >
               <span className="font-mono">{name}</span>
               <X size={11} className="opacity-70" />

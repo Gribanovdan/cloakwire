@@ -6,6 +6,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { Badge } from "../Badge";
 import { Button } from "../Button";
+import { useI18n } from "@/lib/i18n";
 import type { CustomRuleSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -15,22 +16,23 @@ interface Props {
 }
 
 export function RuleSetsPanel({ ruleSets, onChange }: Props) {
+  const { t } = useI18n();
   const update = (tag: string, patch: Partial<CustomRuleSet>) => {
     onChange(ruleSets.map((rs) => (rs.tag === tag ? { ...rs, ...patch } : rs)));
   };
   const remove = (tag: string) => onChange(ruleSets.filter((rs) => rs.tag !== tag));
   const add = () => {
-    const tag = prompt("Tag for new rule-set (a-z 0-9 - _ only):");
+    const tag = prompt(t("routing.ruleSetTagPrompt"));
     if (!tag) return;
     if (!/^[a-z0-9_-]+$/.test(tag)) {
-      alert("Tag must be a-z, 0-9, '-' or '_'");
+      alert(t("routing.ruleSetTagInvalid"));
       return;
     }
     if (ruleSets.some((rs) => rs.tag === tag)) {
-      alert(`Rule-set "${tag}" already exists`);
+      alert(t("routing.ruleSetExists", { tag }));
       return;
     }
-    const url = prompt("URL to .srs or .json rule-set:");
+    const url = prompt(t("routing.ruleSetUrlPrompt"));
     if (!url) return;
     onChange([
       ...ruleSets,
@@ -49,20 +51,20 @@ export function RuleSetsPanel({ ruleSets, onChange }: Props) {
     <div className="rounded-xl border border-border/80 bg-[#07080c] p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Rule-sets</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("routing.ruleSetsTitle")}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            External rule-sets referenced by rules (Loyalsoldier, meta-rules-dat, custom).
+            {t("routing.ruleSetsDesc")}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={add}>
           <Plus size={12} className="mr-1" />
-          Add
+          {t("common.add")}
         </Button>
       </div>
 
       {ruleSets.length === 0 && (
         <div className="rounded-lg border border-dashed border-border/80 bg-background/40 p-3 text-center text-xs text-muted-foreground font-mono">
-          No rule-sets. Use the picker above to add Loyalsoldier or meta-rules-dat presets.
+          {t("routing.noRuleSets")}
         </div>
       )}
 
@@ -80,7 +82,7 @@ export function RuleSetsPanel({ ruleSets, onChange }: Props) {
                 type="checkbox"
                 checked={rs.enabled}
                 onChange={(e) => update(rs.tag, { enabled: e.target.checked })}
-                title="Enable / disable"
+                title={`${t("common.enabled")} / ${t("common.disabled")}`}
                 className="rounded border-input bg-background accent-brand focus:ring-brand"
               />
               <code className="text-xs text-theme-accent font-mono font-medium">{rs.tag}</code>
@@ -91,7 +93,7 @@ export function RuleSetsPanel({ ruleSets, onChange }: Props) {
                 variant="ghost"
                 size="sm"
                 onClick={() => remove(rs.tag)}
-                title="Remove rule-set"
+                title={t("routing.removeRuleSet")}
                 className="ml-auto"
               >
                 <Trash2 size={12} />

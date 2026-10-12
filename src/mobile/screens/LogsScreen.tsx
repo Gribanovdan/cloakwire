@@ -83,7 +83,7 @@ export function LogsScreen({ onBack }: { onBack: () => void }) {
             )}
           >
             {copied ? <Check className="h-3.5 w-3.5 text-theme-accent" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? t("common.copied") : "Diagnostics"}
+            {copied ? t("common.copied") : t("common.diagnostics")}
           </button>
           <button
             type="button"
@@ -98,7 +98,7 @@ export function LogsScreen({ onBack }: { onBack: () => void }) {
       </div>
       {error && <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2 text-xs text-destructive">{error}</p>}
       {lines.length === 0 ? (
-        <EmptyState icon={Terminal} title={t("logs.emptyLogs")} hint="The core writes here once the VPN has started." />
+        <EmptyState icon={Terminal} title={t("logs.emptyLogs")} hint={t("logs.emptyLogsHint")} />
       ) : (
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-white/5 bg-[#07080c] p-3.5 shadow-inner">
           <pre className="whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-foreground/80">

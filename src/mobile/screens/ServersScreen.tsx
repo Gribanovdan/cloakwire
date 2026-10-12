@@ -250,7 +250,7 @@ export function ServersScreen({
         <EmptyState
           icon={Server}
           title={t("servers.noServers")}
-          hint="Use + to paste either a subscription URL or a direct share link; your servers will appear here."
+          hint={t("servers.emptyServersHint")}
         />
       ) : (
         <div className="flex flex-col gap-3">
@@ -437,7 +437,7 @@ export function ServersScreen({
                               {profileLabel(o)}
                             </span>
                             <span className="block truncate font-mono text-[11px] text-muted-foreground">
-                              {supported ? profileEndpoint(o) : "unsupported link"}
+                              {supported ? profileEndpoint(o) : t("servers.unsupportedLink")}
                             </span>
                           </span>
                           <LatencyBadge ms={ms} dim={pinging && ms == null} />
@@ -483,7 +483,7 @@ export function ServersScreen({
                     {s.lastError ? (
                       <span className="text-destructive">{s.lastError}</span>
                     ) : (
-                      `${s.serverCount ?? 0} servers`
+                      t("servers.nodesCount", { count: s.serverCount ?? 0 })
                     )}
                   </p>
                 </div>

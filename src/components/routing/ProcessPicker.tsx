@@ -26,6 +26,7 @@ import { api, TauriCommandError } from "@/lib/api";
 import type { ProcessInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { executableNameFromPath } from "@/lib/processSelection";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   /** Currently selected process names (the rule's `process_name` array). */
@@ -44,6 +45,7 @@ interface Props {
 const SELECTED_KEY = (n: string) => n.toLowerCase();
 
 export function ProcessPicker({ selected, onChange, disabled }: Props) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [processes, setProcesses] = useState<ProcessInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
       const picked = await openDialog({
         multiple: false,
         directory: false,
-        title: "Select application executable",
+        title: t("routing.selectAppExecutable"),
       });
       const pickedPath = Array.isArray(picked) ? picked[0] : picked;
       if (!pickedPath) return;
@@ -142,11 +144,11 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
       >
         <span className="flex items-center gap-2">
           <ListChecks size={13} className="text-theme-accent" />
-          {open ? "Hide process list" : "Pick from running processes…"}
+          {open ? t("routing.hideProcessList") : t("routing.pickFromProcesses")}
         </span>
         {selected.length > 0 && (
           <span className="badge-theme text-[10px] font-mono px-2 py-0.5 rounded-full">
-            {selected.length} active
+            {t("routing.activeProcessesCount", { count: selected.length })}
           </span>
         )}
       </button>
@@ -158,7 +160,7 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search process name…"
+              placeholder={t("routing.searchProcessesPlaceholder")}
               disabled={disabled}
               className="flex-1 rounded-lg bg-[#0b0c12] border border-border/80 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-theme-accent focus:border-theme-accent disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -167,7 +169,7 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
               size="sm"
               onClick={browseExecutable}
               disabled={disabled || browsing}
-              title="Add executable from disk"
+              title={t("routing.addExecutableFromDisk")}
             >
               {browsing ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -180,7 +182,7 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
               size="sm"
               onClick={fetchList}
               disabled={loading}
-              title="Refresh running processes"
+              title={t("routing.refreshProcesses")}
             >
               {loading ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -193,29 +195,29 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
           {/* Status line */}
           {error ? (
             <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-2.5 py-1.5 text-[11px] text-destructive-foreground flex items-center justify-between font-mono">
-              <span>Failed to list processes: {error}</span>
+              <span>{t("routing.failedListProcesses", { error })}</span>
               <button
                 type="button"
                 onClick={() => setError(null)}
                 className="text-destructive-foreground/80 hover:text-destructive-foreground"
-                aria-label="Dismiss error"
+                aria-label={t("common.close")}
               >
                 <X size={12} />
               </button>
             </div>
           ) : loading && processes.length === 0 ? (
             <div className="text-[11px] text-muted-foreground px-1 font-mono">
-              Loading processes…
+              {t("routing.loadingProcesses")}
             </div>
           ) : processes.length === 0 ? (
             <div className="text-[11px] text-muted-foreground px-1 font-mono">
-              No running processes available. You can still use the file
-              button above to choose any installed executable.
+              {t("routing.noProcessesFound")}
             </div>
           ) : (
             <div className="text-[11px] text-muted-foreground px-1 font-mono">
-              {filtered.length} of {processes.length}
-              {query && ` matching “${query}”`}
+              {query
+                ? t("routing.matchingProcessesCount", { count: filtered.length, total: processes.length, query })
+                : t("routing.allProcessesCount", { count: filtered.length, total: processes.length })}
             </div>
           )}
 

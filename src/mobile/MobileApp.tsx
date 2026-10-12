@@ -671,7 +671,7 @@ export default function MobileApp() {
               {reconnectInProgress
                 ? t("common.reconnecting")
                 : reconnectFailed
-                  ? "Reconnect failed. Try again to apply changes."
+                  ? t("settings.reconnectFailed")
                   : t("settings.reconnectNotice")}
               {reconnectFailed && reconnectError && (
                 <span
@@ -694,7 +694,7 @@ export default function MobileApp() {
                   (vpn.busy || reconnectInProgress) && "animate-spin",
                 )}
               />
-              {reconnectFailed ? "Retry" : t("settings.reconnectNow")}
+              {reconnectFailed ? t("common.retry") : t("settings.reconnectNow")}
             </button>
           </div>
         )}

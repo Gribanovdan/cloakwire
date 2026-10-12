@@ -130,7 +130,7 @@ export function SettingsScreen({
     setTestingLeaks(true);
     setLeakResult(null);
     try {
-      const res = await runLeakDiagnostics();
+      const res = await runLeakDiagnostics(undefined, (k, vars) => t(k as any, vars));
       setLeakResult(res);
     } catch {
       // ignore
@@ -176,18 +176,18 @@ export function SettingsScreen({
             }
           />
           <SettingRow
-            label="Remote rule-sets"
+            label={t("settings.remoteRuleSets")}
             hint={
               remoteSets.length === 0
-                ? "No rule-sets configured."
-                : `${remoteSets.length} rule-set${remoteSets.length === 1 ? "" : "s"} — download updates over the network.`
+                ? t("settings.noRemoteRuleSets")
+                : t("settings.remoteRuleSetsHint", { count: remoteSets.length })
             }
             control={
               <Switch
                 checked={remoteEnabled}
                 onChange={setRemoteEnabled}
                 disabled={remoteSets.length === 0}
-                label="Remote rule-sets"
+                label={t("settings.remoteRuleSets")}
               />
             }
           />
@@ -205,7 +205,7 @@ export function SettingsScreen({
       </SectionCard>
 
       <SectionCard>
-        <SectionHeader title="Security & Privacy" />
+        <SectionHeader title={t("settings.securityAndPrivacy")} />
         <div className="divide-y divide-white/5">
 
           <div className="p-3 space-y-2">
@@ -267,10 +267,10 @@ export function SettingsScreen({
       </SectionCard>
 
       <SectionCard>
-        <SectionHeader title="Network" />
+        <SectionHeader title={t("settings.network")} />
         <div className="divide-y divide-white/5">
           <SettingRow
-            label="DNS provider"
+            label={t("settings.dnsProvider")}
             control={
               <select
                 value={dnsPreset}
@@ -286,14 +286,14 @@ export function SettingsScreen({
                   </option>
                 ))}
                 {dnsPreset === "custom" && (
-                  <option value="custom">Custom</option>
+                  <option value="custom">{t("common.custom")}</option>
                 )}
               </select>
             }
           />
           <SettingRow
-            label="Mixed port"
-            hint="Local SOCKS/HTTP listener."
+            label={t("common.port")}
+            hint={t("settings.mixedPortHint")}
             control={
               <input
                 type="number"
@@ -321,7 +321,7 @@ export function SettingsScreen({
         <div className="divide-y divide-white/5">
           <SettingRow
             label={t("common.version")}
-            hint="Bundled sing-box and Xray cores."
+            hint={t("settings.coresHint")}
             control={
               <span className="font-mono text-xs text-muted-foreground">
                 {coreVersion ?? (inTauri ? "…" : "preview")}
@@ -367,6 +367,7 @@ export function SettingsScreen({
  * the device uses it. 2026-08-20.
  */
 function DeviceHwidSection() {
+  const { t } = useI18n();
   const [info, setInfo] = useState<{
     effective: string;
     auto: string | null;
@@ -440,15 +441,14 @@ function DeviceHwidSection() {
 
   return (
     <SectionCard>
-      <SectionHeader title="Device HWID" />
+      <SectionHeader title={t("servers.deviceHwidTitle")} />
       <div className="space-y-3 px-4 py-3 text-xs text-muted-foreground">
         <p>
-          Device identifier sent to providers. If a subscription is bound
-          to another device, paste its HWID here.
+          {t("servers.deviceHwidDesc")}
         </p>
         <div className="space-y-1">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground/70">
-            Current
+            {t("servers.currentHwid")}
           </div>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded-md border border-border bg-muted/40 px-2 py-1.5 font-mono text-[11px] text-foreground">
@@ -460,7 +460,7 @@ function DeviceHwidSection() {
               disabled={!info?.effective}
               className="rounded-md border border-border px-2 py-1 text-[11px] text-foreground active:bg-accent disabled:opacity-50"
             >
-              Copy
+              {t("common.copy")}
             </button>
           </div>
         </div>
@@ -475,7 +475,7 @@ function DeviceHwidSection() {
               disabled={busy}
               className="ml-2 underline decoration-dotted underline-offset-2 active:text-foreground disabled:opacity-50"
             >
-              clear override
+              {t("servers.clearOverride")}
             </button>
           </p>
         )}
@@ -489,7 +489,7 @@ function DeviceHwidSection() {
             disabled={busy}
             className="rounded-md border border-border px-3 py-1.5 text-foreground active:bg-accent disabled:opacity-50"
           >
-            {info?.custom ? "Change override" : "Paste HWID from another device"}
+            {info?.custom ? t("servers.changeOverride") : t("servers.pasteFromOtherDevice")}
           </button>
         ) : (
           <div className="space-y-2">
@@ -513,7 +513,7 @@ function DeviceHwidSection() {
                 disabled={busy || !draft.trim()}
                 className="rounded-md bg-primary px-3 py-1.5 text-primary-foreground shadow-sm active:bg-primary/90 disabled:opacity-50"
               >
-                Save override
+                {t("servers.saveOverride")}
               </button>
               <button
                 type="button"
@@ -525,7 +525,7 @@ function DeviceHwidSection() {
                 disabled={busy}
                 className="rounded-md border border-border px-3 py-1.5 text-foreground active:bg-accent disabled:opacity-50"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </div>
@@ -536,7 +536,7 @@ function DeviceHwidSection() {
           disabled={busy}
           className="text-[11px] underline decoration-dotted underline-offset-2 active:text-foreground disabled:opacity-50"
         >
-          Regenerate auto HWID (keeps any override)
+          {t("servers.regenerateDeviceHwid")}
         </button>
         {error && <p className="text-destructive">{error}</p>}
       </div>

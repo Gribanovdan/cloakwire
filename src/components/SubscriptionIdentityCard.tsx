@@ -5,8 +5,10 @@ import type { DeviceHwidInfo } from "@/lib/types";
 import { Button } from "@/components/Button";
 import { Badge } from "@/components/Badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/Card";
+import { useI18n } from "@/lib/i18n";
 
 export function SubscriptionIdentityCard() {
+  const { t } = useI18n();
   const [info, setInfo] = useState<DeviceHwidInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -47,7 +49,7 @@ export function SubscriptionIdentityCard() {
   };
 
   const clear = async () => {
-    if (!window.confirm("Clear the custom HWID override and return to this installation's generated identity?")) return;
+    if (!window.confirm(t("servers.clearOverrideConfirm"))) return;
     setBusy(true);
     setError(null);
     try {
@@ -60,7 +62,7 @@ export function SubscriptionIdentityCard() {
   };
 
   const resetAuto = async () => {
-    if (!window.confirm("Generate a new automatic HWID? Providers may treat it as a new device. A custom override, if set, will stay active.")) return;
+    if (!window.confirm(t("servers.regenerateAutoHwidConfirm"))) return;
     setBusy(true);
     setError(null);
     try {
@@ -78,7 +80,7 @@ export function SubscriptionIdentityCard() {
       await navigator.clipboard.writeText(info.effective);
       setError(null);
     } catch {
-      setError("Clipboard access is unavailable; copy the value manually.");
+      setError(t("servers.identityClipboardUnavailable"));
     }
   };
 
@@ -88,30 +90,30 @@ export function SubscriptionIdentityCard() {
         <div className="space-y-1">
           <CardTitle className="flex items-center gap-2">
             <KeyRound className="h-4 w-4 text-theme-accent" />
-            Subscription identity
-            {info?.custom && <Badge variant="secondary">custom</Badge>}
+            {t("servers.subscriptionIdentityTitle")}
+            {info?.custom && <Badge variant="secondary">{t("servers.customBadge")}</Badge>}
           </CardTitle>
           <CardDescription>
-            Stable UUID sent only to subscription providers as X-HWID. Paste an ID from another trusted device when a provider binds the URL to its first device.
+            {t("servers.subscriptionIdentityDesc")}
           </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Effective HWID</p>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("servers.effectiveHwid")}</p>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded border border-border bg-muted/40 px-2 py-1.5 font-mono text-[11px]">
-              {loading ? "Loading…" : info?.effective ?? "Unavailable"}
+              {loading ? t("common.loading") : info?.effective ?? t("common.unknown")}
             </code>
             <Button variant="outline" size="sm" onClick={() => void copy()} disabled={!info?.effective || busy}>
-              <Copy className="h-3.5 w-3.5" /> Copy
+              <Copy className="h-3.5 w-3.5" /> {t("common.copy")}
             </Button>
           </div>
         </div>
 
         {info?.custom && (
           <p className="text-[11px] text-muted-foreground">
-            Override is active. Automatic identity: <code className="font-mono text-foreground">{info.auto}</code>
+            {t("servers.overrideActiveAuto", { auto: info.auto ?? "—" })}
           </p>
         )}
 
@@ -131,26 +133,26 @@ export function SubscriptionIdentityCard() {
             />
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => { setEditing(false); setDraft(""); }} disabled={busy}>
-                <X className="h-3.5 w-3.5" /> Cancel
+                <X className="h-3.5 w-3.5" /> {t("common.cancel")}
               </Button>
               <Button size="sm" onClick={() => void save()} disabled={busy || !draft.trim()}>
                 {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                Save override
+                {t("servers.saveOverride")}
               </Button>
             </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => { setDraft(info?.custom ?? ""); setEditing(true); }} disabled={busy || loading}>
-              Paste HWID override
+              {t("servers.pasteHwidOverride")}
             </Button>
             {info?.custom && (
               <Button variant="ghost" size="sm" onClick={() => void clear()} disabled={busy}>
-                Clear override
+                {t("servers.clearOverride")}
               </Button>
             )}
             <Button variant="ghost" size="sm" onClick={() => void resetAuto()} disabled={busy || loading}>
-              <RefreshCw className="h-3.5 w-3.5" /> Regenerate auto ID
+              <RefreshCw className="h-3.5 w-3.5" /> {t("servers.regenerateAutoHwid")}
             </Button>
           </div>
         )}

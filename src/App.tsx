@@ -1224,7 +1224,7 @@ export default function App() {
                   ].filter(Boolean).join(" · ")
                 : binary?.exists
                   ? basename(binary.path)
-                  : "scanning binaries…"}
+                  : t("config.scanningBinaries")}
             </p>
           </div>
         </div>

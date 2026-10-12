@@ -85,7 +85,7 @@ export function LogView({ logs, onClear, className }: Props) {
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             )}
           >
-            System
+            {t("common.system")}
           </button>
         </div>
         <div className="flex items-center gap-1">
@@ -122,7 +122,7 @@ export function LogView({ logs, onClear, className }: Props) {
       >
         {visible.length === 0 ? (
           <div className="flex h-full items-center justify-center text-muted-foreground">
-            No log output yet.
+            {t("logs.emptyLogs")}
           </div>
         ) : (
           visible.map((line, i) => (

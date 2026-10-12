@@ -15,6 +15,7 @@ import { AccentThemePicker } from "@/components/AccentThemePicker";
 import { LanguagePicker } from "@/components/LanguagePicker";
 import { basename } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import type {
   BinaryInfo,
   GeneratorSettings,
@@ -59,6 +60,8 @@ export function ConfigTab({
   currentSingboxVersion,
   onSingboxUpdated,
 }: ConfigTabProps) {
+  const { t } = useI18n();
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-6">
       {/* Config picker */}
@@ -67,10 +70,10 @@ export function ConfigTab({
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <FileJson className="h-4 w-4 text-theme-accent" />
-              Active config
+              {t("config.activeConfigTitle")}
             </CardTitle>
             <CardDescription>
-              sing-box will be started with this file via{" "}
+              {t("config.activeConfigDesc")}{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">
                 sing-box run -c &lt;path&gt;
               </code>
@@ -87,11 +90,11 @@ export function ConfigTab({
             >
               <FolderOpen className="h-3.5 w-3.5 mr-1.5" />
               <span className="truncate">
-                {configPath ? basename(configPath) : "Pick config…"}
+                {configPath ? basename(configPath) : t("config.pickConfigFile")}
               </span>
             </Button>
             <Button variant="outline" size="sm" onClick={onUseDefault}>
-              Use default
+              {t("config.useDefault")}
             </Button>
           </div>
           {configPath && (
@@ -134,23 +137,23 @@ export function ConfigTab({
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Server className="h-4 w-4 text-theme-accent" />
-              Core binaries
+              {t("config.coreBinariesTitle")}
             </CardTitle>
-            <CardDescription>Verified sidecars discovered by the backend</CardDescription>
+            <CardDescription>{t("config.coreBinariesDesc")}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="space-y-3 text-xs">
-          <Row label="Path" value={binary?.path || "—"} mono />
+          <Row label={t("config.tablePath")} value={binary?.path || "—"} mono />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Row label="Size" value={binary ? formatBytes(binary.size_bytes) : "—"} mono />
-            <Row label="Exists" value={binary?.exists ? "yes" : "no"} mono />
+            <Row label={t("config.tableSize")} value={binary ? formatBytes(binary.size_bytes) : "—"} mono />
+            <Row label={t("config.tableExists")} value={binary?.exists ? t("common.yes") : t("common.no")} mono />
             <Row label="sing-box" value={version?.version || "—"} mono />
             <Row label="Xray" value={xrayVersion || "—"} mono />
           </div>
           {version && (
             <div className="mt-2 space-y-1.5 border-t border-border/80 pt-3">
-              <Row label="Revision" value={version.revision.slice(0, 16)} mono />
-              <Row label="Env" value={version.environment} mono />
+              <Row label={t("config.tableRevision")} value={version.revision.slice(0, 16)} mono />
+              <Row label={t("config.tableEnv")} value={version.environment} mono />
             </div>
           )}
         </CardContent>

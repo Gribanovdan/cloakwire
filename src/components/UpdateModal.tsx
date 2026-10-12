@@ -3,6 +3,7 @@ import { Download, Loader2, Sparkles, X, ArrowRight } from "lucide-react";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 export interface UpdateModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function UpdateModal({
   busy = false,
   error = null,
 }: UpdateModalProps) {
+  const { t } = useI18n();
   if (!open) return null;
 
   return (
@@ -46,7 +48,7 @@ export function UpdateModal({
             </div>
             <div>
               <h2 className="text-base font-semibold text-foreground tracking-tight">
-                Доступно обновление
+                {t("updates.modalTitle")}
               </h2>
               <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="font-mono">v{currentVersion}</span>
@@ -60,7 +62,7 @@ export function UpdateModal({
             onClick={onDismiss}
             disabled={busy}
             className="rounded-full p-1 text-muted-foreground transition hover:bg-white/10 hover:text-foreground disabled:opacity-50"
-            title="Закрыть"
+            title={t("common.close")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -70,7 +72,7 @@ export function UpdateModal({
         {notes && (
           <div className="mt-4 max-h-48 overflow-y-auto rounded-2xl border border-white/5 bg-background/50 p-3.5 text-xs text-muted-foreground/90 font-mono leading-relaxed space-y-1">
             <p className="font-semibold text-foreground/90 font-sans uppercase tracking-wider text-[10px]">
-              Что нового:
+              {t("updates.whatsNew")}
             </p>
             <div className="whitespace-pre-wrap">{notes}</div>
           </div>
@@ -93,7 +95,7 @@ export function UpdateModal({
             disabled={busy}
             className="rounded-xl px-4 text-xs text-muted-foreground hover:bg-white/5 hover:text-foreground"
           >
-            Позже
+            {t("updates.later")}
           </Button>
           <Button
             type="button"
@@ -105,12 +107,12 @@ export function UpdateModal({
             {busy ? (
               <>
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Обновление…</span>
+                <span>{t("updates.updating")}</span>
               </>
             ) : (
               <>
                 <Download className="h-3.5 w-3.5 stroke-[2.5]" />
-                <span>Обновить</span>
+                <span>{t("updates.updateNow")}</span>
               </>
             )}
           </Button>

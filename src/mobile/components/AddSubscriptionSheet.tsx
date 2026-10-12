@@ -102,7 +102,7 @@ export function AddSubscriptionSheet({
   const submit = async () => {
     const input = source.trim();
     if (!input) {
-      setError("Paste a subscription URL or share link.");
+      setError(t("servers.pasteShareOrSubUrl"));
       return;
     }
 
@@ -114,7 +114,7 @@ export function AddSubscriptionSheet({
         setError(
           result.failures[0]
             ? String(result.failures[0].error)
-            : "Unsupported link or subscription URL.",
+            : t("servers.unsupportedLinkOrUrl"),
         );
         setBusy(false);
         return;
@@ -155,10 +155,10 @@ export function AddSubscriptionSheet({
 
   const sourceHint =
     sourceKind === "share"
-      ? "Share link detected. Additional lines are parsed too."
+      ? t("servers.shareLinkDetected")
       : sourceKind === "subscription"
-        ? "Subscription URL detected. Additional lines are parsed too."
-        : "Paste one or more links. Each non-empty line will be parsed.";
+        ? t("servers.subUrlDetected")
+        : t("servers.pasteLinksHint");
 
   return (
     <Sheet open={open} onClose={onClose} title={t("servers.addSubscription")}>
@@ -168,7 +168,7 @@ export function AddSubscriptionSheet({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-theme-accent">
                 <Clipboard className="h-3 w-3" />
-                <span>Link in clipboard</span>
+                <span>{t("servers.linkInClipboard")}</span>
               </div>
               <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
                 {clipboardContent}

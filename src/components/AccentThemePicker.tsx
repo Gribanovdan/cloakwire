@@ -81,12 +81,23 @@ export function AccentThemePicker({ compact = false }: Props) {
         <div className="grid grid-cols-5 gap-2.5">
           {accents.map((item) => {
             const isSelected = accent === item.id;
+            const labelKey =
+              item.id === "cyan"
+                ? "settings.accentCyan"
+                : item.id === "violet"
+                  ? "settings.accentViolet"
+                  : item.id === "amber"
+                    ? "settings.accentAmber"
+                    : item.id === "rose"
+                      ? "settings.accentRose"
+                      : "settings.accentEmerald";
+            const localizedLabel = t(labelKey);
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setAccent(item.id as AccentId)}
-                title={item.label}
+                title={localizedLabel}
                 className={cn(
                   "group relative flex flex-col items-center gap-1.5 rounded-lg border p-2.5 transition-all duration-200",
                   isSelected
@@ -113,7 +124,7 @@ export function AccentThemePicker({ compact = false }: Props) {
                     isSelected ? "text-foreground font-semibold" : "text-muted-foreground",
                   )}
                 >
-                  {item.label}
+                  {localizedLabel}
                 </span>
               </button>
             );

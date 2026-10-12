@@ -520,7 +520,7 @@ export function HomeScreen({
                   block.type === "bundle" ? (
                     block.children.length === 0 ? (
                       <p className="px-1 py-2 text-xs text-muted-foreground">
-                        No servers loaded
+                        {t("servers.noServersLoaded")}
                       </p>
                     ) : (
                       <ul className="divide-y divide-white/5">
@@ -577,7 +577,7 @@ export function HomeScreen({
                     )
                   ) : block.entries.length === 0 ? (
                     <p className="px-1 py-2 text-xs text-muted-foreground">
-                      No servers loaded
+                      {t("servers.noServersLoaded")}
                     </p>
                   ) : (
                     <ul className="divide-y divide-white/5">

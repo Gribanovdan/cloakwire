@@ -1,4 +1,4 @@
-﻿import { api } from "./api";
+import { api } from "./api";
 import type { LeakStatusReport } from "./types";
 
 export interface LeakTestResult {
@@ -81,7 +81,9 @@ export async function detectWebRtcIps(): Promise<string[]> {
  * - WebRTC STUN reflexive candidate leak check
  * - DNS resolver observation
  */
-export async function runLeakDiagnostics(baselineIp?: string): Promise<LeakTestResult> {
+export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
+
+export async function runLeakDiagnostics(baselineIp?: string, t?: TranslateFn): Promise<LeakTestResult> {
   const details: string[] = [];
   let statusReport: LeakStatusReport = {
     ip: "—",
@@ -112,24 +114,52 @@ export async function runLeakDiagnostics(baselineIp?: string): Promise<LeakTestR
 
   if (statusReport.ip === "—" || !statusReport.ip) {
     verdict = "error";
-    details.push("Не удалось определить публичный IP адрес (проверьте подключение).");
+    details.push(
+      t
+        ? t("config.leakFailedToDetectIp")
+        : "Failed to determine public IP address (check your connection).",
+    );
   } else {
-    details.push(`Публичный IP: ${statusReport.ip} (${statusReport.country}, ${statusReport.isp})`);
+    details.push(
+      t
+        ? t("config.leakPublicIp", {
+            ip: statusReport.ip,
+            country: statusReport.country,
+            isp: statusReport.isp,
+          })
+        : `Public IP: ${statusReport.ip} (${statusReport.country}, ${statusReport.isp})`,
+    );
 
     if (baselineIp && baselineIp !== "—" && statusReport.ip === baselineIp) {
       verdict = "leaking";
-      details.push("Внимание: Текущий IP совпадает с вашим исходным IP провайдера!");
+      details.push(
+        t
+          ? t("config.leakIpMatchesBaseline")
+          : "Warning: Current IP matches your original ISP baseline IP!",
+      );
     }
 
     if (statusReport.ipv6_detected) {
       verdict = "leaking";
-      details.push("Обнаружена утечка IPv6: протокол IPv6 активен в обход туннеля.");
+      details.push(
+        t
+          ? t("config.leakIpv6Detected")
+          : "IPv6 leak detected: IPv6 traffic is bypassing the tunnel.",
+      );
     } else {
-      details.push("IPv6 надежно заблокирован (утечек нет).");
+      details.push(
+        t
+          ? t("config.leakIpv6Blocked")
+          : "IPv6 is securely blocked (no leaks detected).",
+      );
     }
 
     if (statusReport.dns_server) {
-      details.push(`DNS резолвер: ${statusReport.dns_server}`);
+      details.push(
+        t
+          ? t("config.leakDnsResolver", { dns: statusReport.dns_server })
+          : `DNS resolver: ${statusReport.dns_server}`,
+      );
     }
 
     // WebRTC check: look for public IPs that differ from the VPN exit IP
@@ -146,9 +176,19 @@ export async function runLeakDiagnostics(baselineIp?: string): Promise<LeakTestR
 
     if (leakedPublicWebRtc.length > 0) {
       verdict = "leaking";
-      details.push(`WebRTC утечка реального IP: ${leakedPublicWebRtc.join(", ")}`);
+      details.push(
+        t
+          ? t("config.leakWebRtcDetected", {
+              ips: leakedPublicWebRtc.join(", "),
+            })
+          : `WebRTC leak of real IP detected: ${leakedPublicWebRtc.join(", ")}`,
+      );
     } else {
-      details.push("WebRTC STUN утечек внешнего IP не обнаружено.");
+      details.push(
+        t
+          ? t("config.leakWebRtcNone")
+          : "No WebRTC STUN external IP leaks detected.",
+      );
     }
   }
 

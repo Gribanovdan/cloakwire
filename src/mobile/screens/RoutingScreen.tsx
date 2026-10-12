@@ -18,11 +18,11 @@ const inTauri =
 
 type TunAppMode = "all" | "include" | "exclude";
 
-const APP_MODES: { id: TunAppMode; label: string }[] = [
-  { id: "all", label: "All apps" },
-  { id: "include", label: "Only selected" },
-  { id: "exclude", label: "All except selected" },
-];
+const APP_MODES = [
+  { id: "all", labelKey: "routing.allApps" },
+  { id: "include", labelKey: "routing.onlySelectedApps" },
+  { id: "exclude", labelKey: "routing.allExceptSelectedApps" },
+] as const;
 
 /**
  * Global mode selector. The Settings model has no dedicated
@@ -31,9 +31,9 @@ const APP_MODES: { id: TunAppMode; label: string }[] = [
  * "auto" = urltest picks, "direct" = everything direct.
  */
 const GLOBAL_MODES = [
-  { id: "proxy", label: "Global", hint: "Everything through the selected server" },
-  { id: "auto", label: "Auto", hint: "Fastest server (urltest)" },
-  { id: "direct", label: "Direct", hint: "Everything bypasses the VPN" },
+  { id: "proxy", labelKey: "routing.globalModeTitle", hintKey: "routing.globalModeHint" },
+  { id: "auto", labelKey: "routing.autoModeTitle", hintKey: "routing.autoModeHint" },
+  { id: "direct", labelKey: "routing.directModeTitle", hintKey: "routing.directModeHint" },
 ] as const;
 
 export function RoutingScreen({
@@ -57,7 +57,7 @@ export function RoutingScreen({
       <SectionCard>
         <SectionHeader
           title={t("home.mode")}
-          description="Where traffic goes when no rule matches."
+          description={t("routing.modeDesc")}
         />
         <div className="grid grid-cols-3 gap-2 p-3">
           {GLOBAL_MODES.map((m) => {
@@ -68,7 +68,7 @@ export function RoutingScreen({
                 type="button"
                 onClick={() => updateRouting({ final_outbound: m.id })}
                 aria-pressed={active}
-                title={m.hint}
+                title={t(m.hintKey)}
                 className={cn(
                   "rounded-xl border py-2.5 px-2 text-xs font-medium transition-all duration-200",
                   active
@@ -76,7 +76,7 @@ export function RoutingScreen({
                     : "border-white/5 bg-[#07080c] text-muted-foreground active:scale-95 hover:text-foreground",
                 )}
               >
-                {m.label}
+                {t(m.labelKey)}
               </button>
             );
           })}
@@ -94,22 +94,22 @@ export function RoutingScreen({
 
       {/* Rule groups */}
       <RuleGroup
-        title={`${t("common.proxy")} ${t("routing.title")}`}
-        hint="Domains / IPs routed through the VPN."
+        title={t("routing.proxyRoutingRules")}
+        hint={t("routing.proxyRoutingRulesHint")}
         group="proxy"
         rules={r.rules}
         onChange={(rules) => updateRouting({ rules })}
       />
       <RuleGroup
-        title={`${t("common.direct")} ${t("routing.title")}`}
-        hint="Domains / IPs that bypass the VPN."
+        title={t("routing.directRoutingRules")}
+        hint={t("routing.directRoutingRulesHint")}
         group="direct"
         rules={r.rules}
         onChange={(rules) => updateRouting({ rules })}
       />
       <RuleGroup
-        title={`${t("common.block")} ${t("routing.title")}`}
-        hint="Domains / IPs rejected entirely."
+        title={t("routing.blockRoutingRules")}
+        hint={t("routing.blockRoutingRulesHint")}
         group="block"
         rules={r.rules}
         onChange={(rules) => updateRouting({ rules })}
@@ -133,6 +133,7 @@ function PerAppSection({
   onModeChange: (m: TunAppMode) => void;
   onListChange: (l: string[]) => void;
 }) {
+  const { t } = useI18n();
   const [apps, setApps] = useState<AppEntry[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +187,7 @@ function PerAppSection({
 
   return (
     <SectionCard>
-      <SectionHeader title="Per-app routing" />
+      <SectionHeader title={t("routing.perAppRouting")} />
       <div className="space-y-3 p-3">
         <div className="grid grid-cols-3 gap-2">
           {APP_MODES.map((m) => (
@@ -202,14 +203,14 @@ function PerAppSection({
                   : "border-white/5 bg-[#07080c] text-muted-foreground active:scale-95 hover:text-foreground",
               )}
             >
-              {m.label}
+              {t(m.labelKey)}
             </button>
           ))}
         </div>
 
         {!hasRouteRules && appList.length === 0 && (
           <div className="rounded-xl border border-white/5 bg-[#07080c] px-3.5 py-2.5 text-xs text-muted-foreground">
-            Add a route rule or select apps to customize routing.
+            {t("routing.addRouteOrSelectApps")}
           </div>
         )}
 
@@ -236,24 +237,24 @@ function PerAppSection({
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search apps"
+                    placeholder={t("routing.searchApps")}
                     className="h-9 w-full bg-transparent text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                   />
                 </div>
                 {error && <p className="text-xs text-destructive">{error}</p>}
                 {loading && (
                   <p className="py-4 text-center text-xs text-muted-foreground">
-                    Loading apps…
+                    {t("routing.loadingApps")}
                   </p>
                 )}
                 {!inTauri && (
                   <p className="py-4 text-center text-xs text-muted-foreground">
-                    App list is only available on Android.
+                    {t("routing.appOnlyOnAndroid")}
                   </p>
                 )}
                 {apps != null && visibleApps.length === 0 && !loading && (
                   <p className="py-4 text-center text-xs text-muted-foreground">
-                    No apps match.
+                    {t("routing.noAppsMatch")}
                   </p>
                 )}
                 {apps != null && (
@@ -361,6 +362,7 @@ function RuleGroup({
   rules: CustomRule[];
   onChange: (rules: CustomRule[]) => void;
 }) {
+  const { t } = useI18n();
   const [value, setValue] = useState("");
   const mine = rules.filter((r) => ruleGroup(r) === group);
 
@@ -384,7 +386,7 @@ function RuleGroup({
         <p className="text-[11px] text-muted-foreground">{hint}</p>
         {mine.length === 0 ? (
           <p className="py-1 text-[11px] italic text-muted-foreground/70">
-            No entries.
+            {t("routing.noEntries")}
           </p>
         ) : (
           <ul className="divide-y divide-white/5 rounded-xl border border-white/5 bg-[#07080c]">
@@ -400,7 +402,7 @@ function RuleGroup({
                 </div>
                 <Switch
                   checked={rule.enabled}
-                  label={`Enable ${rule.label || "rule"}`}
+                  label={rule.label || "rule"}
                   onChange={(v) =>
                     onChange(
                       rules.map((r) =>
@@ -412,7 +414,8 @@ function RuleGroup({
                 <button
                   type="button"
                   onClick={() => onChange(rules.filter((r) => r.id !== rule.id))}
-                  aria-label={`Remove ${rule.label || "rule"}`}
+                  aria-label={t("common.delete")}
+                  title={t("common.delete")}
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-95 transition"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -435,7 +438,8 @@ function RuleGroup({
             type="button"
             onClick={add}
             disabled={!value.trim()}
-            aria-label="Add entry"
+            aria-label={t("common.add")}
+            title={t("common.add")}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-theme-accent text-zinc-950 shadow-theme-accent active:scale-95 transition hover:opacity-90 disabled:opacity-50"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />

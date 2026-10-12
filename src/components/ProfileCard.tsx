@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { flagForProfile } from "@/lib/flags";
 import { isSupported } from "@/lib/outbound";
+import { useI18n } from "@/lib/i18n";
 import type { Outbound, TlsCfg, Transport } from "@/lib/types";
 
 const PROTOCOL_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -147,6 +148,7 @@ function protocolExtra(o: Outbound): string | null {
 }
 
 export function ProfileCard({ outbound, geoipByIp, onRemove }: Props) {
+  const { t } = useI18n();
   const [showJson, setShowJson] = useState(false);
   const [jsonText, setJsonText] = useState<string | null>(null);
   const [jsonError, setJsonError] = useState<string | null>(null);
@@ -256,7 +258,7 @@ export function ProfileCard({ outbound, geoipByIp, onRemove }: Props) {
             size="icon"
             className="h-7 w-7"
             onClick={onToggleJson}
-            title={showJson ? "Hide JSON" : "Show sing-box JSON"}
+            title={showJson ? t("servers.hideJson") : t("servers.showSingboxJson")}
           >
             {showJson ? (
               <EyeOff className="h-3.5 w-3.5" />
@@ -269,7 +271,7 @@ export function ProfileCard({ outbound, geoipByIp, onRemove }: Props) {
             size="icon"
             className="h-7 w-7"
             onClick={onRemove}
-            title="Remove"
+            title={t("common.delete")}
           >
             <X className="h-3.5 w-3.5" />
           </Button>
@@ -285,7 +287,7 @@ export function ProfileCard({ outbound, geoipByIp, onRemove }: Props) {
           ) : (
             <>
               <pre className="max-h-64 overflow-auto px-3 py-2 font-mono text-[10.5px] leading-relaxed text-foreground/80">
-                {jsonText ?? "rendering…"}
+                {jsonText ?? t("proxies.rendering")}
               </pre>
               <div className="flex items-center justify-end border-t border-border bg-card/40 px-2 py-1">
                 <Button
@@ -296,11 +298,11 @@ export function ProfileCard({ outbound, geoipByIp, onRemove }: Props) {
                 >
                   {copied ? (
                     <>
-                      <Check className="h-3 w-3" /> Copied
+                      <Check className="h-3 w-3" /> {t("common.copied")}
                     </>
                   ) : (
                     <>
-                      <Copy className="h-3 w-3" /> Copy JSON
+                      <Copy className="h-3 w-3" /> {t("servers.copyJson")}
                     </>
                   )}
                 </Button>

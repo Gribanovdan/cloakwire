@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Download, RefreshCw, ShieldCheck, Cpu } from "lucide-react";
 import { Button } from "./Button";
 import { api, TauriCommandError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   /** Currently-running sing-box version, fetched by App.tsx. */
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function UpdateCard({ currentSingboxVersion }: Props) {
+  const { t } = useI18n();
   // App shell (Tauri updater) state.
   const [appUpdate, setAppUpdate] = useState<{
     version: string;
@@ -74,9 +76,9 @@ export function UpdateCard({ currentSingboxVersion }: Props) {
       <div className="flex items-start gap-2.5">
         <ShieldCheck size={16} className="mt-0.5 text-theme-accent" />
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-foreground">Updates & Core Status</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("updates.title")}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            App shell updates. VPN cores are managed and bundled with Cloakwire releases.
+            {t("updates.desc")}
           </p>
         </div>
       </div>
@@ -94,15 +96,15 @@ export function UpdateCard({ currentSingboxVersion }: Props) {
           <div className="min-w-0">
             <div className="text-[11px] font-mono text-muted-foreground flex items-center gap-1 uppercase">
               <Cpu size={11} className="text-theme-accent" />
-              sing-box Core
+              {t("updates.singboxCore")}
             </div>
             <div className="text-sm font-medium text-foreground mt-0.5">
               {currentSingboxVersion ? (
                 <span className="font-mono">{currentSingboxVersion}</span>
               ) : (
-                <span className="text-muted-foreground">not detected</span>
+                <span className="text-muted-foreground">{t("updates.notDetected")}</span>
               )}
-              <span className="text-muted-foreground ml-2 text-xs font-mono">— managed by Cloakwire release</span>
+              <span className="text-muted-foreground ml-2 text-xs font-mono">— {t("updates.managedByRelease")}</span>
             </div>
           </div>
         </div>
@@ -131,26 +133,25 @@ function AppUpdateRow({
   onCheck: () => void;
   onInstall: () => void;
 }) {
+  const { t } = useI18n();
   const available = !!update;
   return (
     <div className="rounded-xl border border-border/80 bg-[#07080c] p-3.5">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="min-w-0">
-          <div className="text-[11px] font-mono text-muted-foreground uppercase">App Shell</div>
+          <div className="text-[11px] font-mono text-muted-foreground uppercase">{t("updates.appShell")}</div>
           <div className="text-sm font-medium text-foreground mt-0.5">
             {available ? (
               <>
-                New version{" "}
-                <span className="font-mono text-theme-accent">{update!.version}</span>{" "}
-                available
+                {t("updates.newVersionAvailable", { version: update!.version })}
                 {update!.notes ? (
                   <span className="text-xs text-muted-foreground"> — {update!.notes}</span>
                 ) : null}
               </>
             ) : error ? (
-              <span className="text-muted-foreground">Check failed</span>
+              <span className="text-muted-foreground">{t("updates.checkFailed")}</span>
             ) : (
-              <span className="text-muted-foreground">Up to date</span>
+              <span className="text-muted-foreground">{t("updates.upToDate")}</span>
             )}
           </div>
         </div>
@@ -160,14 +161,14 @@ function AppUpdateRow({
             size="sm"
             onClick={onCheck}
             disabled={busy}
-            title="Check for app updates"
+            title={t("updates.checkUpdates")}
           >
             <RefreshCw size={12} className={busy ? "animate-spin" : ""} />
           </Button>
           {available && (
             <Button size="sm" onClick={onInstall} disabled={busy} className="bg-theme-accent hover:opacity-90 text-zinc-950 font-medium">
               <Download size={12} className="mr-1" />
-              {busy ? "Installing…" : "Update & restart"}
+              {busy ? t("updates.installing") : t("updates.installAndRestart")}
             </Button>
           )}
         </div>

@@ -20,12 +20,15 @@ import {
 import type { CustomRule, CustomRuleSet } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+import { useI18n } from "@/lib/i18n";
+
 interface Props {
   onAddRule: (rule: CustomRule) => void;
   onAddRuleSet: (rs: CustomRuleSet) => void;
 }
 
 export function PresetPicker({ onAddRule, onAddRuleSet }: Props) {
+  const { t } = useI18n();
   const [source, setSource] = useState<PresetSource | "all">("all");
   const filtered = RULE_SET_PRESETS.filter(
     (p) => source === "all" || p.source === source,
@@ -34,9 +37,9 @@ export function PresetPicker({ onAddRule, onAddRuleSet }: Props) {
   return (
     <div className="rounded-xl border border-border/80 bg-[#07080c] p-4 space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Starter rules</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("routing.starterRulesTitle")}</h3>
         <p className="text-xs text-muted-foreground mt-0.5">
-          One-click inserts for common routing rules.
+          {t("routing.starterRulesDesc")}
         </p>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
           {RULE_PRESETS.map((p) => (
@@ -61,10 +64,9 @@ export function PresetPicker({ onAddRule, onAddRuleSet }: Props) {
       <div className="border-t border-border/80 pt-4">
         <div className="flex items-center justify-between gap-2 mb-3">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Rule-set library</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("routing.ruleSetLibraryTitle")}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Pre-built rule-sets (Loyalsoldier / meta-rules-dat). Use the
-              rule-set tag in any rule's <em>Rule-set</em> field.
+              {t("routing.ruleSetLibraryDesc")}
             </p>
           </div>
           <div className="flex items-center gap-1 rounded-lg border border-border/80 bg-[#0b0c12] p-0.5 text-xs">
@@ -106,12 +108,13 @@ function RuleSetPresetRow({
   preset: RuleSetPreset;
   onAdd: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex items-center gap-2 rounded border border-border bg-background/40 px-2.5 py-1.5">
       <code className="text-xs text-foreground/80 font-mono">{preset.tag}</code>
       <span className="text-sm text-foreground truncate flex-1">{preset.label}</span>
       <Badge variant="secondary">{preset.source}</Badge>
-      <Button variant="ghost" size="sm" onClick={onAdd} title="Add rule-set">
+      <Button variant="ghost" size="sm" onClick={onAdd} title={t("routing.addRuleSet")}>
         <Plus size={12} />
       </Button>
     </div>
