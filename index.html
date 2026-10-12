@@ -1,9 +1,23 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Cloakwire</title>
+    <script>
+      (function() {
+        try {
+          var m = localStorage.getItem("cloakwire:theme-mode") || "system";
+          var isDark = m === "dark" || m === "oled" || (m === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (isDark) {
+            document.documentElement.classList.add("dark");
+            if (m === "oled") document.documentElement.classList.add("oled");
+          } else {
+            document.documentElement.classList.add("light");
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body class="bg-background text-foreground antialiased">
     <div id="root"></div>
