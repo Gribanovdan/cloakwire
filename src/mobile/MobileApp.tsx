@@ -23,6 +23,7 @@ import {
 } from "./lib/settings";
 import { loadLastServer, saveLastServer } from "./lib/lastServer";
 import { useVpnConnection } from "./useVpnConnection";
+import { useI18n } from "@/lib/i18n";
 import { HomeScreen } from "./screens/HomeScreen";
 import { ServersScreen } from "./screens/ServersScreen";
 import { RoutingScreen } from "./screens/RoutingScreen";
@@ -85,9 +86,20 @@ function readStoredTab(): TabId {
 }
 
 export default function MobileApp() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabId>(readStoredTab);
   const [logsOpen, setLogsOpen] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<"previous" | "next">("next");
+
+  const tabs = useMemo(
+    () => [
+      { id: "home" as const, label: t("nav.home"), icon: Home },
+      { id: "servers" as const, label: t("nav.servers"), icon: Link2 },
+      { id: "routing" as const, label: t("nav.routing"), icon: Route },
+      { id: "settings" as const, label: t("nav.settings"), icon: Settings2 },
+    ],
+    [t]
+  );
   const [settings, setSettings] = useState<GeneratorSettings>(loadSettings);
   const [autoConnect, setAutoConnect] = useState<boolean>(loadAutoConnect);
   const [manualProfiles, setManualProfiles] = useState<Outbound[]>(() =>
@@ -657,10 +669,10 @@ export default function MobileApp() {
           >
             <span className="text-xs text-foreground/90">
               {reconnectInProgress
-                ? "Reconnecting VPN…"
+                ? t("common.reconnecting")
                 : reconnectFailed
                   ? "Reconnect failed. Try again to apply changes."
-                  : "Settings saved. Reconnect the VPN to apply changes."}
+                  : t("settings.reconnectNotice")}
               {reconnectFailed && reconnectError && (
                 <span
                   className="ml-2 block text-[11px] text-destructive/90"
@@ -682,7 +694,7 @@ export default function MobileApp() {
                   (vpn.busy || reconnectInProgress) && "animate-spin",
                 )}
               />
-              {reconnectFailed ? "Retry" : "Reconnect"}
+              {reconnectFailed ? "Retry" : t("settings.reconnectNow")}
             </button>
           </div>
         )}
@@ -791,7 +803,7 @@ export default function MobileApp() {
       {/* Bottom navigation. */}
       <nav className="shrink-0 border-t border-white/10 bg-[#0c0d14]/95 backdrop-blur-2xl pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl">
         <div className="flex items-stretch px-2 pt-1.5">
-          {TABS.map((t) => {
+          {tabs.map((t) => {
             const Icon = t.icon;
             const active = t.id === activeTab;
             return (

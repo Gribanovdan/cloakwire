@@ -29,6 +29,7 @@ import { AddSubscriptionSheet } from "../components/AddSubscriptionSheet";
 import { Sheet } from "../components/Sheet";
 import { formatBytes, formatMs, formatRate, formatUptime } from "../lib/format";
 import { triggerHaptic } from "../lib/haptics";
+import { useI18n } from "@/lib/i18n";
 
 const inTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -80,6 +81,7 @@ export function HomeScreen({
   onAddSub?: (input: { name?: string; url: string }) => Promise<void>;
   onAddLinks?: (outbounds: Outbound[]) => void;
 }) {
+  const { t } = useI18n();
   const [serverPickerOpen, setServerPickerOpen] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
 
@@ -156,12 +158,12 @@ export function HomeScreen({
 
   const headline =
     vpn.state === "running"
-      ? "Connected"
+      ? t("common.connected")
       : vpn.state === "starting"
-        ? "Connecting…"
+        ? t("common.connecting")
         : vpn.state === "error"
-          ? "Error"
-          : "Disconnected";
+          ? t("common.error")
+          : t("common.disconnected");
 
   const serverLine = activeBundle
     ? activeBundle.childName
@@ -306,7 +308,7 @@ export function HomeScreen({
                 else void onConnect();
               }}
               disabled={vpn.busy || isTransition || !vpn.ready}
-              aria-label={isRunning ? "Disconnect" : "Connect"}
+              aria-label={isRunning ? t("common.disconnect") : t("common.connect")}
               className={cn(
                 "group relative flex h-28 w-28 items-center justify-center rounded-full",
                 "border-2 transition-all duration-300",
@@ -355,10 +357,10 @@ export function HomeScreen({
                   <span className="font-medium text-foreground">{serverLine}</span>
                 </>
               ) : profiles.length === 0 ? (
-                <span>Add a server to get started</span>
+                <span>{t("servers.noServers")}</span>
               ) : (
                 <>
-                  <span>Ready:</span>
+                  <span>{t("common.status")}:</span>
                   {flag && <FlagIcon code={flag.code} size={14} className="self-center" />}
                   <span className="font-medium text-foreground">{serverLine}</span>
                 </>
@@ -369,7 +371,7 @@ export function HomeScreen({
               <div className="flex items-center justify-center pt-1">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-background/60 px-2.5 py-0.5 font-mono text-[10px] text-muted-foreground shadow-sm">
                   <Clock className="h-3 w-3 text-theme-accent" />
-                  <span>session {formatDuration(uptimeSecs)}</span>
+                  <span>{t("home.sessionTime")}: {formatDuration(uptimeSecs)}</span>
                 </span>
               </div>
             )}
@@ -384,7 +386,7 @@ export function HomeScreen({
 
         {/* Hero Footer */}
         <div className="relative z-10 flex items-center justify-between border-t border-white/5 pt-3 text-[11px] font-mono text-muted-foreground/70">
-          <span>TUN Mode • Protected</span>
+          <span>{t("home.tunMode")} • {t("home.secureConnection")}</span>
           <span>{vpn.engine === "xray" ? "Xray Core" : "sing-box Core"}</span>
         </div>
       </div>
@@ -393,7 +395,7 @@ export function HomeScreen({
       <div className="bento-card flex flex-col justify-between rounded-3xl p-4 shadow-xl">
         <div className="mb-2.5 flex items-center justify-between">
           <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-            Live Traffic
+            {t("home.traffic")}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground">
             {isRunning ? (vpn.engine ? `${vpn.engine} engine` : "sing-box") : "idle"}
@@ -404,26 +406,26 @@ export function HomeScreen({
           <div className="rounded-xl border border-white/5 bg-background/50 p-2.5 shadow-sm">
             <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <TrendingDown className="h-3.5 w-3.5 text-theme-accent" />
-              Download
+              {t("home.download")}
             </div>
             <p className="mt-1 font-mono text-lg font-bold tabular-nums text-foreground">
               {formatRate(current?.down_bps ?? 0)}
             </p>
             <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/80">
-              total {formatBytes(current?.down_total ?? 0)}
+              {t("home.totalTraffic")} {formatBytes(current?.down_total ?? 0)}
             </p>
           </div>
 
           <div className="rounded-xl border border-white/5 bg-background/50 p-2.5 shadow-sm">
             <div className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               <TrendingUp className="h-3.5 w-3.5 text-cyan-400" />
-              Upload
+              {t("home.upload")}
             </div>
             <p className="mt-1 font-mono text-lg font-bold tabular-nums text-foreground">
               {formatRate(current?.up_bps ?? 0)}
             </p>
             <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/80">
-              total {formatBytes(current?.up_total ?? 0)}
+              {t("home.totalTraffic")} {formatBytes(current?.up_total ?? 0)}
             </p>
           </div>
         </div>
@@ -650,7 +652,7 @@ export function HomeScreen({
       <Sheet
         open={serverPickerOpen}
         onClose={() => setServerPickerOpen(false)}
-        title="Select active server"
+        title={t("home.selectServer")}
       >
         <div className="space-y-3 pb-4">
           <button

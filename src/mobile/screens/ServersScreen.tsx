@@ -17,6 +17,7 @@ import { EmptyState } from "../components/EmptyState";
 import { SectionCard, SectionHeader } from "../components/SectionCard";
 import { formatMs } from "../lib/format";
 import { latencyTone } from "../lib/mobileUi";
+import { useI18n } from "@/lib/i18n";
 
 const inTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -80,6 +81,7 @@ export function ServersScreen({
   /** Delete a manual profile by tag. */
   onRemoveManual: (tag: string) => void;
 }) {
+  const { t } = useI18n();
   // Auto-probe every 10 s (reused desktop hook); "Ping all" fires an
   // extra manual pass and overlays its results on the hook's map.
   const auto = useServerLatency(profiles);
@@ -216,7 +218,7 @@ export function ServersScreen({
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Servers</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">{t("servers.title")}</h2>
           {engine && (
             <span
               className={cn(
@@ -236,7 +238,7 @@ export function ServersScreen({
           <button
             type="button"
             onClick={() => setSheetOpen(true)}
-            aria-label="Add subscription"
+            aria-label={t("servers.addSubscription")}
             className="flex h-8 w-8 items-center justify-center rounded-xl bg-theme-accent text-zinc-950 shadow-theme-accent active:scale-95 transition hover:opacity-90"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -247,7 +249,7 @@ export function ServersScreen({
       {profiles.length === 0 && subs.every((s) => s.kind === "auto" || s.children.length === 0) ? (
         <EmptyState
           icon={Server}
-          title="No servers yet"
+          title={t("servers.noServers")}
           hint="Use + to paste either a subscription URL or a direct share link; your servers will appear here."
         />
       ) : (
@@ -470,7 +472,7 @@ export function ServersScreen({
       {/* Subscriptions overview. */}
       {subs.length > 0 && (
         <SectionCard>
-          <SectionHeader title="Subscriptions" />
+          <SectionHeader title={t("servers.subscriptions")} />
           <ul className="divide-y divide-border">
             {subs.map((s) => (
               <li key={s.id} className="flex items-center gap-2 px-3.5 py-2.5">
@@ -523,14 +525,16 @@ export function ServersScreen({
         open={!!pendingDelete}
         title={
           pendingDelete?.kind === "subscription"
-            ? "Delete subscription?"
-            : "Delete server?"
+            ? t("servers.deleteConfirmTitle")
+            : t("common.delete")
         }
         description={
           pendingDelete
-            ? `“${pendingDelete.label}” will be removed from the list.`
+            ? `“${pendingDelete.label}”`
             : undefined
         }
+        confirmLabel={t("common.delete")}
+        cancelLabel={t("common.cancel")}
         onConfirm={() => {
           if (!pendingDelete) return;
           if (pendingDelete.kind === "manual") {

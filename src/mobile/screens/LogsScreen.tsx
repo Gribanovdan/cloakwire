@@ -4,10 +4,12 @@ import { vpnCoreVersion, vpnReadLogs } from "@/lib/vpn";
 import { buildDiagnosticsReport, copyTextToClipboard } from "@/lib/diagnostics";
 import { EmptyState } from "../components/EmptyState";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 export function LogsScreen({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -67,7 +69,7 @@ export function LogsScreen({ onBack }: { onBack: () => void }) {
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h2 className="text-base font-semibold tracking-tight text-foreground">Logs</h2>
+          <h2 className="text-base font-semibold tracking-tight text-foreground">{t("nav.logs")}</h2>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -81,7 +83,7 @@ export function LogsScreen({ onBack }: { onBack: () => void }) {
             )}
           >
             {copied ? <Check className="h-3.5 w-3.5 text-theme-accent" /> : <Copy className="h-3.5 w-3.5" />}
-            {copied ? "Copied" : "Diagnostics"}
+            {copied ? t("common.copied") : "Diagnostics"}
           </button>
           <button
             type="button"
@@ -90,13 +92,13 @@ export function LogsScreen({ onBack }: { onBack: () => void }) {
             className="flex h-8 items-center gap-1.5 rounded-xl border border-white/10 bg-[#07080c] px-3 text-xs text-foreground active:scale-95 transition disabled:opacity-50"
           >
             <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin text-theme-accent")} />
-            Refresh
+            {t("common.refresh")}
           </button>
         </div>
       </div>
       {error && <p className="rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2 text-xs text-destructive">{error}</p>}
       {lines.length === 0 ? (
-        <EmptyState icon={Terminal} title="No log lines" hint="The core writes here once the VPN has started." />
+        <EmptyState icon={Terminal} title={t("logs.emptyLogs")} hint="The core writes here once the VPN has started." />
       ) : (
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto rounded-2xl border border-white/5 bg-[#07080c] p-3.5 shadow-inner">
           <pre className="whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-foreground/80">

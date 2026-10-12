@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types";
 import { SectionCard, SectionHeader } from "../components/SectionCard";
 import { Switch } from "../components/Switch";
+import { useI18n } from "@/lib/i18n";
 
 const inTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -42,6 +43,7 @@ export function RoutingScreen({
   settings: GeneratorSettings;
   onSettingsChange: (next: GeneratorSettings) => void;
 }) {
+  const { t } = useI18n();
   const r = settings.routing;
   const updateRouting = (patch: Partial<RoutingOptions>) =>
     onSettingsChange({ ...settings, routing: { ...r, ...patch } });
@@ -54,7 +56,7 @@ export function RoutingScreen({
       {/* Mode */}
       <SectionCard>
         <SectionHeader
-          title="Mode"
+          title={t("home.mode")}
           description="Where traffic goes when no rule matches."
         />
         <div className="grid grid-cols-3 gap-2 p-3">
@@ -92,21 +94,21 @@ export function RoutingScreen({
 
       {/* Rule groups */}
       <RuleGroup
-        title="Proxy rules"
+        title={`${t("common.proxy")} ${t("routing.title")}`}
         hint="Domains / IPs routed through the VPN."
         group="proxy"
         rules={r.rules}
         onChange={(rules) => updateRouting({ rules })}
       />
       <RuleGroup
-        title="Direct rules"
+        title={`${t("common.direct")} ${t("routing.title")}`}
         hint="Domains / IPs that bypass the VPN."
         group="direct"
         rules={r.rules}
         onChange={(rules) => updateRouting({ rules })}
       />
       <RuleGroup
-        title="Block rules"
+        title={`${t("common.block")} ${t("routing.title")}`}
         hint="Domains / IPs rejected entirely."
         group="block"
         rules={r.rules}

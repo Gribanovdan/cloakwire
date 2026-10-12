@@ -10,6 +10,8 @@ import { SectionCard, SectionHeader, SettingRow } from "../components/SectionCar
 import { Switch } from "../components/Switch";
 import { type MobileEngine } from "@/mobile/lib/settings";
 import { AccentThemePicker } from "@/components/AccentThemePicker";
+import { LanguagePicker } from "@/components/LanguagePicker";
+import { useI18n } from "@/lib/i18n";
 
 const inTauri =
   typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -72,6 +74,7 @@ export function SettingsScreen({
   subsFetching: boolean;
   onOpenLogs: () => void;
 }) {
+  const { t } = useI18n();
   const update = (patch: Partial<GeneratorSettings>) =>
     onSettingsChange({ ...settings, ...patch });
   const updateRouting = (patch: Partial<RoutingOptions>) =>
@@ -159,16 +162,16 @@ export function SettingsScreen({
   return (
     <div className="flex flex-col gap-4 p-4">
       <SectionCard>
-        <SectionHeader title="General" />
+        <SectionHeader title={t("settings.title")} />
         <div className="divide-y divide-white/5">
           <SettingRow
-            label="Auto-connect"
+            label={t("settings.autoConnect")}
             hint="Connect on app start."
             control={
               <Switch
                 checked={autoConnect}
                 onChange={onAutoConnectChange}
-                label="Auto-connect"
+                label={t("settings.autoConnect")}
               />
             }
           />
@@ -192,9 +195,12 @@ export function SettingsScreen({
       </SectionCard>
 
       <SectionCard>
-        <SectionHeader title="Appearance & Themes" />
-        <div className="p-3">
-          <AccentThemePicker compact />
+        <SectionHeader title={t("settings.appearance")} />
+        <div className="space-y-4 p-3">
+          <LanguagePicker />
+          <div className="border-t border-white/5 pt-3">
+            <AccentThemePicker compact />
+          </div>
         </div>
       </SectionCard>
 
@@ -311,10 +317,10 @@ export function SettingsScreen({
       {inTauri && <DeviceHwidSection />}
 
       <SectionCard>
-        <SectionHeader title="About" />
+        <SectionHeader title={t("settings.about")} />
         <div className="divide-y divide-white/5">
           <SettingRow
-            label="Core versions"
+            label={t("common.version")}
             hint="Bundled sing-box and Xray cores."
             control={
               <span className="font-mono text-xs text-muted-foreground">
@@ -329,7 +335,7 @@ export function SettingsScreen({
               className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-[#07080c] text-sm text-foreground active:scale-[0.98] transition"
             >
               <Terminal className="h-4 w-4 text-theme-accent" />
-              View logs
+              {t("nav.logs")}
             </button>
           </div>
           <div className="px-4 py-3">
@@ -342,7 +348,7 @@ export function SettingsScreen({
               <RefreshCw
                 className={cn("h-4 w-4 stroke-[2.5]", subsFetching && "animate-spin")}
               />
-              Check subscription updates
+              {t("servers.updateAll")}
             </button>
           </div>
         </div>
