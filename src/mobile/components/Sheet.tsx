@@ -49,13 +49,13 @@ export function Sheet({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative w-full max-w-lg rounded-t-3xl border border-b-0 border-white/10 bg-[#0c0d14]",
-          "max-h-[88vh] overflow-y-auto shadow-2xl backdrop-blur-2xl ring-1 ring-white/5",
+          "relative w-full max-w-lg rounded-t-3xl border border-b-0 border-border bg-card",
+          "max-h-[88vh] overflow-y-auto shadow-2xl backdrop-blur-2xl ring-1 ring-border/20",
           "pb-[env(safe-area-inset-bottom)]",
         )}
       >
-        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-white/20" />
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/5 bg-[#0c0d14]/95 px-5 py-3.5 backdrop-blur-xl">
+        <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-card/95 px-5 py-3.5 backdrop-blur-xl">
           <h2 className="text-sm font-semibold tracking-tight text-foreground">{title}</h2>
           <button
             type="button"

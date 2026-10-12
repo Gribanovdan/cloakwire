@@ -627,7 +627,7 @@ export default function MobileApp() {
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-background text-foreground">
       {/* Header: brand + live status capsule. */}
-      <header className="flex shrink-0 items-center justify-between border-b border-white/5 bg-[#07080c]/85 px-4 py-3 backdrop-blur-xl pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <header className="flex shrink-0 items-center justify-between border-b border-border/40 bg-background/85 px-4 py-3 backdrop-blur-xl pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-xl bg-theme-subtle ring-1 ring-theme-accent">
             <img src={cloakwireLogo} alt="Cloakwire" className="h-5 w-5" />
@@ -636,16 +636,16 @@ export default function MobileApp() {
             <h1 className="text-sm font-semibold tracking-tight text-foreground">Cloakwire</h1>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-[#0c0d14]/80 px-2.5 py-1 backdrop-blur-md shadow-sm">
+        <div className="flex items-center gap-1.5 rounded-full border border-border/40 bg-card/80 px-2.5 py-1 backdrop-blur-md shadow-sm">
           <span className={cn("h-2 w-2 rounded-full", dotCls)} />
           <span className="text-[11px] font-mono text-muted-foreground">
             {vpn.state === "running"
-              ? "Connected"
+              ? t("common.connected")
               : vpn.state === "starting"
-                ? "Connecting"
+                ? t("common.connecting")
                 : vpn.state === "error"
-                  ? "Error"
-                  : "Offline"}
+                  ? t("common.error")
+                  : t("common.disconnected")}
           </span>
         </div>
       </header>
@@ -801,7 +801,7 @@ export default function MobileApp() {
       </main>
 
       {/* Bottom navigation. */}
-      <nav className="shrink-0 border-t border-white/10 bg-[#0c0d14]/95 backdrop-blur-2xl pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl">
+      <nav className="shrink-0 border-t border-border/60 bg-card/95 backdrop-blur-2xl pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl">
         <div className="flex items-stretch px-2 pt-1.5">
           {tabs.map((t) => {
             const Icon = t.icon;
