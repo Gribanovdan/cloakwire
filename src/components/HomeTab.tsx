@@ -304,7 +304,7 @@ export function HomeTab({
                 {isRunning && (
                   <Badge variant="default" className="badge-theme text-[10px]">
                     <Sparkles className="h-3 w-3 mr-1" />
-                    live
+                    {t("traffic.liveBadge")}
                   </Badge>
                 )}
               </div>
@@ -312,17 +312,17 @@ export function HomeTab({
                 {isRunning
                   ? isXrayRunning
                     ? <>
-                        <span>via</span>
+                        <span>{t("home.via")}</span>
                         <FlagIcon code={activeXrayDisplay.code} size={14} className="self-center" />
                         <span className="font-medium text-foreground">{status.profile_name ?? activeXrayDisplay.label}</span>
                       </>
                     : activeName && activeFlag
                       ? <>
-                          <span>via</span>
+                          <span>{t("home.via")}</span>
                           <FlagIcon code={activeFlag.code} size={14} className="self-center" />
                           <span className="font-medium text-foreground">{activeName}</span>
                         </>
-                      : "sing-box is running."
+                      : t("home.singboxRunning")
                   : profiles.length === 0
                     ? t("servers.noServers")
                     : t("home.tapToConnect")}
@@ -337,7 +337,7 @@ export function HomeTab({
               )}
               {isRunning && !isXrayRunning && userPicked && (
                 <p className="font-mono text-[10px] text-muted-foreground/70">
-                  picked: {userPicked}
+                  {t("home.picked", { name: userPicked })}
                 </p>
               )}
             </div>
@@ -417,7 +417,7 @@ export function HomeTab({
                 {t("home.traffic")}
               </span>
               <span className="font-mono text-xs text-muted-foreground">
-                {isRunning ? (status.engine ? `${status.engine} engine` : "sing-box") : "idle"}
+                {isRunning ? (status.engine ? `${status.engine} engine` : "sing-box") : t("home.idle")}
               </span>
             </div>
 
@@ -457,20 +457,20 @@ export function HomeTab({
           <div className="bento-card rounded-2xl p-5 flex flex-col justify-between flex-1">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-                Per-App Routing
+                {t("home.perAppRouting")}
               </span>
               <button
                 type="button"
                 onClick={() => onNavigateTab?.("routing")}
                 className="text-xs text-theme-accent hover:underline cursor-pointer flex items-center gap-1 font-medium"
               >
-                Manage ({vpnProcesses.length + directProcesses.length} active) ↗
+                {t("home.manageActiveApps", { count: vpnProcesses.length + directProcesses.length })}
               </button>
             </div>
 
             {vpnProcesses.length === 0 && directProcesses.length === 0 ? (
               <div className="text-xs text-muted-foreground/80 py-1">
-                All applications route through VPN by default. Click manage to customize split tunneling.
+                {t("home.allAppsVpnDefault")}
               </div>
             ) : (
               <div className="flex flex-wrap gap-2 pt-0.5">
@@ -485,12 +485,12 @@ export function HomeTab({
                   <div key={app} className="flex items-center gap-1.5 bg-background/50 border border-border/80 px-2.5 py-1 rounded-lg text-xs text-muted-foreground">
                     <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
                     <span className="font-mono text-[11px]">{app}</span>
-                    <span className="text-[10px] text-muted-foreground font-mono">Direct</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{t("home.directBadge")}</span>
                   </div>
                 ))}
                 {vpnProcesses.length + directProcesses.length > 6 && (
                   <span className="text-[10px] font-mono text-muted-foreground self-center">
-                    +{vpnProcesses.length + directProcesses.length - 6} more
+                    {t("home.andMoreCount", { count: vpnProcesses.length + directProcesses.length - 6 })}
                   </span>
                 )}
               </div>

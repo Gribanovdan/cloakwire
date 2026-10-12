@@ -398,7 +398,7 @@ export function HomeScreen({
             {t("home.traffic")}
           </span>
           <span className="font-mono text-[10px] text-muted-foreground">
-            {isRunning ? (vpn.engine ? `${vpn.engine} engine` : "sing-box") : "idle"}
+            {isRunning ? (vpn.engine ? `${vpn.engine} engine` : "sing-box") : t("home.idle")}
           </span>
         </div>
 
@@ -439,14 +439,14 @@ export function HomeScreen({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
             <Shield className="h-3.5 w-3.5 text-theme-accent" />
-            Per-App Routing
+            {t("home.perAppRouting")}
           </div>
           <button
             type="button"
             onClick={onOpenRouting}
             className="flex items-center gap-0.5 text-xs font-medium text-theme-accent hover:underline active:opacity-80"
           >
-            Manage ↗
+            {t("home.manageRouting")}
           </button>
         </div>
         <button
