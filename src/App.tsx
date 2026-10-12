@@ -21,6 +21,7 @@ import { LogsTab } from "@/components/LogsTab";
 import { ConfigTab } from "@/components/ConfigTab";
 import { RoutingTab } from "@/components/routing/RoutingTab";
 import { UpdateModal } from "@/components/UpdateModal";
+import { useI18n } from "@/lib/i18n";
 import { TauriCommandError, api } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { loadManualProfiles, saveManualProfiles } from "@/lib/manualProfiles";
@@ -323,6 +324,7 @@ function loadSettings(): GeneratorSettings {
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [appVersion, setAppVersion] = useState("1.4.5");
   const [binary, setBinary] = useState<BinaryInfo | null>(null);
   const [version, setVersion] = useState<SingboxVersion | null>(null);
@@ -1047,7 +1049,7 @@ export default function App() {
     () => [
       {
         id: "home",
-        label: "Home",
+        label: t("nav.home"),
         icon: Home,
         content: (
           <HomeTab
@@ -1055,13 +1057,6 @@ export default function App() {
             statusLabel={status.status}
             busy={busy}
             error={error}
-            // The user shouldn't have to know about the config file
-            // at all. `onStart` regenerates it from the current
-            // profiles + settings on every Connect, so the only
-            // real prerequisite is "have at least one server". The
-            // tunnel-mode check (admin / Wintun) is handled inside
-            // sing-box itself — we just try, and surface any error
-            // message in the red banner below the hero.
             canStart={canStartManagedSelection(profiles, selectedIndex)}
             configName={configPath ? basename(configPath) : null}
             profiles={profiles}
@@ -1085,7 +1080,7 @@ export default function App() {
       },
       {
         id: "servers",
-        label: "Servers",
+        label: t("nav.servers"),
         icon: Link2,
         badge: profiles.length > 0 ? profiles.length : undefined,
         content: (
@@ -1114,7 +1109,7 @@ export default function App() {
       },
       {
         id: "config",
-        label: "Config",
+        label: t("nav.config"),
         icon: Settings2,
         content: (
           <ConfigTab
@@ -1139,7 +1134,7 @@ export default function App() {
       },
       {
         id: "routing",
-        label: "Routing",
+        label: t("nav.routing"),
         icon: Route,
         badge:
           settings.routing.rules.length + settings.routing.rule_sets.length > 0
@@ -1155,7 +1150,7 @@ export default function App() {
       },
       {
         id: "logs",
-        label: "Logs",
+        label: t("nav.logs"),
         icon: Terminal,
         content: <LogsTab logs={logs} onClear={() => setLogs([])} />,
       },
@@ -1173,6 +1168,7 @@ export default function App() {
       onStop,
       onSelectProfile,
       pendingLinks,
+      t,
       parseErrors,
       parsing,
       onParseLinks,
@@ -1271,7 +1267,7 @@ export default function App() {
           className="relative z-10 flex items-center justify-between gap-3 border-b border-primary/20 bg-primary/5 px-6 py-2 text-xs"
         >
           <p className="text-foreground/80">
-            Settings saved. Reconnect the VPN to apply changes.
+            {t("settings.reconnectNotice")}
           </p>
           <Button
             type="button"
@@ -1281,7 +1277,7 @@ export default function App() {
             disabled={busy}
             aria-busy={busy}
           >
-            Reconnect now
+            {t("settings.reconnectNow")}
           </Button>
         </div>
       )}

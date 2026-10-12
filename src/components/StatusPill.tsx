@@ -33,19 +33,18 @@ const CONFIG: Record<
   },
 };
 
+import { useI18n } from "@/lib/i18n";
+
 export function StatusPill({
   status,
   onClick,
   disabled,
 }: {
   status: Status;
-  /** When provided, the pill becomes a button. Clicking it should
-   *  toggle the tunnel: connect when stopped/crashed, disconnect
-   *  when running. The transition / starting-stopping states are
-   *  intentionally non-clickable (disabled). */
   onClick?: () => void;
   disabled?: boolean;
 }) {
+  const { t } = useI18n();
   const cfg = CONFIG[status] ?? CONFIG.stopped;
   const interactive = Boolean(onClick) && !disabled &&
     status !== "starting" && status !== "stopping";
@@ -56,6 +55,24 @@ export function StatusPill({
       "cursor-pointer transition-colors hover:border-foreground/40 hover:bg-card/80",
     disabled && "cursor-not-allowed opacity-50",
   );
+
+  const localizedLabel = (() => {
+    switch (status) {
+      case "running":
+        return t("common.connected");
+      case "stopped":
+        return t("common.disconnected");
+      case "starting":
+        return t("common.connecting");
+      case "stopping":
+        return t("common.stopping");
+      case "crashed":
+        return t("common.error");
+      default:
+        return cfg.label;
+    }
+  })();
+
   const inner = (
     <>
       <span
@@ -65,7 +82,7 @@ export function StatusPill({
           status === "running" && "animate-pulse-dot",
         )}
       />
-      <span className="text-sm font-medium">{cfg.label}</span>
+      <span className="text-sm font-medium">{localizedLabel}</span>
       {cfg.icon}
     </>
   );

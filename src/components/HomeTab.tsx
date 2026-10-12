@@ -28,6 +28,7 @@ import { flagForProfile } from "@/lib/flags";
 import { profileLabel, profileEndpoint, isSupported } from "@/lib/outbound";
 import { isValidProfileSelection } from "@/lib/profileSelection";
 import { loadExpandedSubscriptions, saveExpandedSubscriptions } from "@/lib/expandedSubscriptions";
+import { useI18n } from "@/lib/i18n";
 import type { GeneratorSettings, HomeProfileMetadata, Outbound, RoutingOptions, Status, StatusReport, TrafficSample, TunnelMode } from "@/lib/types";
 import type { ConnectionProfile } from "@/lib/connectionProfiles";
 
@@ -123,13 +124,14 @@ export function HomeTab({
   }, [profiles, subscriptionOutbounds]);
 
   const latency = useServerLatency(allOutbounds, isRunning);
+  const { t } = useI18n();
 
   const headline = (() => {
-    if (statusLabel === "running") return "Connected";
-    if (statusLabel === "starting") return "Connecting…";
-    if (statusLabel === "stopping") return "Disconnecting…";
-    if (statusLabel === "crashed") return "Crashed";
-    return "Disconnected";
+    if (statusLabel === "running") return t("common.connected");
+    if (statusLabel === "starting") return t("common.connecting");
+    if (statusLabel === "stopping") return t("common.stopping");
+    if (statusLabel === "crashed") return t("common.error");
+    return t("common.disconnected");
   })();
 
   // Clamp the selected index whenever the list shrinks so we never
@@ -322,14 +324,14 @@ export function HomeTab({
                         </>
                       : "sing-box is running."
                   : profiles.length === 0
-                    ? "Add a server in the Servers tab to get started."
-                    : "Click the button to bring the tunnel up."}
+                    ? t("servers.noServers")
+                    : t("home.tapToConnect")}
               </p>
               {isRunning && (
                 <div className="flex items-center justify-center gap-1.5 pt-1">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-2.5 py-0.5 font-mono text-[11px] text-muted-foreground shadow-sm">
                     <Clock className="h-3 w-3 text-theme-accent" />
-                    <span>session {sessionTimer.formatted}</span>
+                    <span>{t("home.sessionTime")}: {sessionTimer.formatted}</span>
                   </span>
                 </div>
               )}
@@ -344,13 +346,13 @@ export function HomeTab({
           {/* Bottom of Hero */}
           <div className="relative z-10 border-t border-border/60 pt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground/70">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Режим:</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{t("home.mode")}:</span>
               <div className="flex items-center gap-0.5 rounded-lg border border-border/70 bg-background/60 p-0.5 shadow-sm">
                 <button
                   type="button"
                   onClick={() => handleModeChange("tun")}
                   disabled={busy || isTransition}
-                  title="TUN Режим: Полный перехват всего системного трафика (Wintun)"
+                  title="TUN"
                   className={cn(
                     "flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all",
                     currentMode === "tun"
@@ -365,7 +367,7 @@ export function HomeTab({
                   type="button"
                   onClick={() => handleModeChange("system_proxy")}
                   disabled={busy || isTransition}
-                  title="Системный прокси: Настройка системного HTTP/SOCKS5 прокси"
+                  title={t("home.systemProxy")}
                   className={cn(
                     "flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all",
                     currentMode === "system_proxy"
@@ -374,13 +376,13 @@ export function HomeTab({
                   )}
                 >
                   <Globe className="h-3 w-3" />
-                  <span>Прокси</span>
+                  <span>{t("common.proxy")}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleModeChange("both")}
                   disabled={busy || isTransition}
-                  title="Оба режима: TUN адаптер + локальный порт прокси"
+                  title={t("common.both")}
                   className={cn(
                     "flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all",
                     currentMode === "both"
@@ -389,7 +391,7 @@ export function HomeTab({
                   )}
                 >
                   <Layers className="h-3 w-3" />
-                  <span>Оба</span>
+                  <span>{t("common.both")}</span>
                 </button>
               </div>
             </div>
@@ -397,7 +399,7 @@ export function HomeTab({
             <div className="flex items-center gap-2 text-xs">
               <span className="flex items-center gap-1 text-theme-accent font-sans font-medium text-[11px]">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Защищенный туннель</span>
+                <span>{t("home.secureConnection")}</span>
               </span>
               <span>•</span>
               <span>{isXrayRunning ? "Xray Core" : "sing-box Core"}</span>
@@ -412,7 +414,7 @@ export function HomeTab({
           <div className="bento-card rounded-2xl p-5 flex flex-col justify-between">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-                Live Traffic
+                {t("home.traffic")}
               </span>
               <span className="font-mono text-xs text-muted-foreground">
                 {isRunning ? (status.engine ? `${status.engine} engine` : "sing-box") : "idle"}
@@ -423,26 +425,26 @@ export function HomeTab({
               <div className="rounded-xl border border-border/60 bg-background/50 p-3 shadow-sm">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
                   <TrendingDown className="h-3.5 w-3.5 text-theme-accent" />
-                  Download
+                  {t("home.download")}
                 </div>
                 <p className="mt-1 font-mono text-xl font-bold tabular-nums text-foreground">
                   {formatRate(current?.down_bps ?? 0)}
                 </p>
                 <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                  total {formatBytes(current?.down_total ?? 0)}
+                  {t("home.totalTraffic")} {formatBytes(current?.down_total ?? 0)}
                 </p>
               </div>
 
               <div className="rounded-xl border border-border/60 bg-background/50 p-3 shadow-sm">
                 <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-mono">
                   <TrendingUp className="h-3.5 w-3.5 text-cyan-500" />
-                  Upload
+                  {t("home.upload")}
                 </div>
                 <p className="mt-1 font-mono text-xl font-bold tabular-nums text-foreground">
                   {formatRate(current?.up_bps ?? 0)}
                 </p>
                 <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-                  total {formatBytes(current?.up_total ?? 0)}
+                  {t("home.totalTraffic")} {formatBytes(current?.up_total ?? 0)}
                 </p>
               </div>
             </div>
@@ -514,16 +516,16 @@ export function HomeTab({
           <div className="mb-3 flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
               <Server className="h-3.5 w-3.5 text-theme-accent" />
-              All Servers ({profiles.length})
+              {t("servers.all")} ({profiles.length})
             </div>
             <button
               type="button"
               onClick={() => setQuickAddOpen(true)}
               className="flex items-center gap-1 rounded-lg border border-theme-accent-subtle bg-theme-subtle px-2.5 py-1 text-xs font-medium text-theme-accent hover:bg-theme-subtle/80 transition shadow-sm"
-              title="Add Server or Subscription"
+              title={t("servers.addServer")}
             >
               <Plus className="h-3.5 w-3.5" />
-              <span>Add</span>
+              <span>{t("common.add")}</span>
             </button>
           </div>
           <GroupedHomeProfileRows
@@ -556,10 +558,10 @@ export function HomeTab({
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-foreground">
-                    Add Server or Subscription
+                    {t("servers.addServer")}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Paste share links or subscription URLs (one per line)
+                    {t("servers.subscriptionUrl")}
                   </p>
                 </div>
               </div>
@@ -590,7 +592,7 @@ export function HomeTab({
                 size="sm"
                 onClick={() => setQuickAddOpen(false)}
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 size="sm"
@@ -604,7 +606,7 @@ export function HomeTab({
                 }}
                 className="bg-theme-accent hover:opacity-90 text-zinc-950 font-medium px-4"
               >
-                Import
+                {t("common.add")}
               </Button>
             </div>
           </div>

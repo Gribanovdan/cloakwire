@@ -25,7 +25,10 @@ const STREAM_COLOR: Record<LogLine["stream"], string> = {
   system: "text-theme-accent font-medium",
 };
 
+import { useI18n } from "@/lib/i18n";
+
 export function LogView({ logs, onClear, className }: Props) {
+  const { t } = useI18n();
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<"all" | "stderr" | "system">("all");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -60,7 +63,7 @@ export function LogView({ logs, onClear, className }: Props) {
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             )}
           >
-            All
+            {t("servers.all")}
           </button>
           <button
             onClick={() => setFilter("stderr")}
@@ -71,7 +74,7 @@ export function LogView({ logs, onClear, className }: Props) {
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             )}
           >
-            Errors
+            {t("common.error")}
           </button>
           <button
             onClick={() => setFilter("system")}
@@ -87,14 +90,14 @@ export function LogView({ logs, onClear, className }: Props) {
         </div>
         <div className="flex items-center gap-1">
           <span className="text-[10px] text-muted-foreground">
-            {visible.length} lines
+            {visible.length}
           </span>
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7"
             onClick={() => setPaused((p) => !p)}
-            title={paused ? "Resume autoscroll" : "Pause autoscroll"}
+            title={t("logs.autoScroll")}
           >
             {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
           </Button>
@@ -104,7 +107,7 @@ export function LogView({ logs, onClear, className }: Props) {
               size="icon"
               className="h-7 w-7"
               onClick={onClear}
-              title="Clear (frontend only)"
+              title={t("logs.clear")}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

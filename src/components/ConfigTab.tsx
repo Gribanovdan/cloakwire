@@ -12,6 +12,7 @@ import { SubscriptionIdentityCard } from "@/components/SubscriptionIdentityCard"
 import { ProxiesCard } from "@/components/ProxiesCard";
 import { UpdateCard } from "@/components/UpdateCard";
 import { AccentThemePicker } from "@/components/AccentThemePicker";
+import { LanguagePicker } from "@/components/LanguagePicker";
 import { basename } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type {
@@ -109,6 +110,13 @@ export function ConfigTab({
         onResetSettings={onResetSettings}
         onConfigPath={onConfigPath}
       />
+
+      {/* Language Selection */}
+      <Card className="bento-card">
+        <CardContent className="pt-6">
+          <LanguagePicker />
+        </CardContent>
+      </Card>
 
       {/* Appearance & Accent Themes */}
       <Card className="bento-card">

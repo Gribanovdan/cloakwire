@@ -13,13 +13,13 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { SubscriptionsCard } from "@/components/SubscriptionsCard";
 import { cn } from "@/lib/utils";
 import { profileLabel } from "@/lib/outbound";
+import { useI18n } from "@/lib/i18n";
 import type { HomeProfileMetadata, ParseFailure, SubscriptionSummary } from "@/lib/types";
 import type { ConnectionProfile } from "@/lib/connectionProfiles";
 
 export interface ServersTabProps {
   profiles: ConnectionProfile[];
   parseErrors: ParseFailure[];
-  /** Top-level error from the last Parse attempt (e.g. command-not-found). */
   parseError: string | null;
   pendingLinks: string;
   onPendingLinksChange: (v: string) => void;
@@ -27,7 +27,6 @@ export interface ServersTabProps {
   onRemove: (index: number) => void;
   onClearAll: () => void;
   parsing: boolean;
-  // Subscriptions
   subs: SubscriptionSummary[];
   subFetching: Record<string, boolean>;
   onAddSub: (sub: { url: string; name?: string; intervalMinutes?: number }) => void;
@@ -36,9 +35,7 @@ export interface ServersTabProps {
   onRefreshAllSubs: () => void;
   onSetSubInterval: (id: string, minutes: number) => void;
   onSelectSubChild: (subscriptionId: string, childKey: string) => void;
-  /** ip → country code from the GeoIP cache (useGeoIp). */
   geoipByIp: Record<string, string>;
-  /** Safe country metadata for ready Xray profiles, keyed by `${subscriptionId}:${key}`. */
   readyProfileMetadata: ReadonlyMap<string, HomeProfileMetadata>;
 }
 
@@ -62,6 +59,7 @@ export function ServersTab({
   onSelectSubChild,
   geoipByIp,
 }: ServersTabProps) {
+  const { t } = useI18n();
   const [addOpen, setAddOpen] = useState(true);
   const [subOpen, setSubOpen] = useState(true);
 
@@ -81,12 +79,10 @@ export function ServersTab({
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Link2 className="h-4 w-4 text-theme-accent" />
-                Add Servers & Subscriptions
+                {t("servers.title")}
               </CardTitle>
               <CardDescription>
-                One entry per line — accepts share-links (vless://, vmess://,
-                ss://, hy2://, trojan://, tuic://) and subscription URLs
-                (https://…). Auto-detected.
+                {t("servers.subtitle")}
               </CardDescription>
             </div>
             <Button
@@ -95,7 +91,7 @@ export function ServersTab({
               onClick={() => setAddOpen((v) => !v)}
               className="text-xs"
             >
-              {addOpen ? "Hide" : "Add"}
+              {addOpen ? t("common.close") : t("common.add")}
             </Button>
           </div>
         </CardHeader>
@@ -127,7 +123,7 @@ export function ServersTab({
                 ) : (
                   <Plus className="h-3.5 w-3.5 mr-1.5" />
                 )}
-                Import server or subscription
+                {t("servers.addServer")}
               </Button>
               <Button
                 size="sm"
@@ -177,7 +173,7 @@ export function ServersTab({
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Rss className="h-4 w-4 text-theme-accent" />
-                Subscriptions
+                {t("servers.subscriptions")}
                 <Badge
                   variant="secondary"
                   className="badge-theme px-2 py-0.5 text-xs font-mono"
@@ -186,7 +182,7 @@ export function ServersTab({
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Subscription providers fetched automatically. Select specific servers from the Home tab.
+                {t("servers.subtitle")}
               </CardDescription>
             </div>
             <Button
@@ -195,7 +191,7 @@ export function ServersTab({
               onClick={() => setSubOpen((v) => !v)}
               className="text-xs"
             >
-              {subOpen ? "Hide" : "Manage"}
+              {subOpen ? t("common.close") : t("common.edit")}
             </Button>
           </div>
         </CardHeader>
@@ -222,7 +218,7 @@ export function ServersTab({
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Server className="h-4 w-4 text-theme-accent" />
-                Custom Servers
+                {t("servers.manual")}
                 <Badge
                   variant="secondary"
                   className="badge-theme px-2 py-0.5 text-xs font-mono"
@@ -231,7 +227,7 @@ export function ServersTab({
                 </Badge>
               </CardTitle>
               <CardDescription>
-                Manually added proxies (share-links). Subscriptions are managed separately above.
+                {t("servers.subtitle")}
               </CardDescription>
             </div>
             {manualProfiles.length > 0 && (

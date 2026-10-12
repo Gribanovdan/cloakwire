@@ -3,6 +3,7 @@ import { ExternalLink, Loader2, Plus, RefreshCw, Rss, Trash2 } from "lucide-reac
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import type { ProviderMetadata, SubscriptionSummary } from "@/lib/types";
 
 export interface SubscriptionsCardProps {
@@ -28,6 +29,7 @@ export function SubscriptionsCard({
   onIntervalChange,
   onSelectChild,
 }: SubscriptionsCardProps) {
+  const { t } = useI18n();
   const [adding, setAdding] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [draftUrl, setDraftUrl] = useState("");
@@ -51,18 +53,18 @@ export function SubscriptionsCard({
         <div className="flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
             <Rss className="h-4 w-4 text-muted-foreground" />
-            Subscriptions
+            {t("servers.subscriptions")}
             {subs.length > 0 && (
               <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{subs.length}</Badge>
             )}
           </h3>
           <div className="flex gap-1">
             {subs.length > 0 && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRefreshAll} title="Refresh all">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onRefreshAll} title={t("servers.updateAll")}>
                 <RefreshCw className="h-3.5 w-3.5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAdding((value) => !value)} title="Add subscription">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAdding((value) => !value)} title={t("servers.addSubscription")}>
               <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>

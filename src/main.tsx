@@ -7,6 +7,8 @@ import "./lib/accentTheme";
 // Mobile UI is a separate bundle chunk — desktop users never pay for it.
 const MobileApp = React.lazy(() => import("./mobile/MobileApp"));
 
+import { I18nProvider } from "./lib/i18n";
+
 // Android (Tauri WebView) or an explicit ?mobile=1 override for testing
 // the mobile shell in a desktop browser.
 const isMobile =
@@ -15,12 +17,14 @@ const isMobile =
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {isMobile ? (
-      <Suspense fallback={null}>
-        <MobileApp />
-      </Suspense>
-    ) : (
-      <App />
-    )}
+    <I18nProvider>
+      {isMobile ? (
+        <Suspense fallback={null}>
+          <MobileApp />
+        </Suspense>
+      ) : (
+        <App />
+      )}
+    </I18nProvider>
   </React.StrictMode>
 );

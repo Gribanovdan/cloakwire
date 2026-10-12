@@ -5,9 +5,11 @@ import { LogView } from "./LogView";
 import { Button } from "./Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./Card";
 import { buildDiagnosticsReport, copyTextToClipboard } from "@/lib/diagnostics";
+import { useI18n } from "@/lib/i18n";
 import type { LogLine } from "@/lib/types";
 
 export function LogsTab({ logs, onClear }: { logs: LogLine[]; onClear: () => void }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
   const [appVersion, setAppVersion] = useState("unknown");
@@ -50,15 +52,15 @@ export function LogsTab({ logs, onClear }: { logs: LogLine[]; onClear: () => voi
             <div className="space-y-1">
               <CardTitle className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-theme-accent" />
-                Live Console & Diagnostics
+                {t("logs.title")}
               </CardTitle>
               <CardDescription>
-                Diagnostic copies include only the latest 200 lines and redact URLs, UUIDs, IP addresses, emails, and long tokens.
+                {t("logs.subtitle")}
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={() => void copyReport()}>
               {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy diagnostics"}
+              {copied ? t("common.copied") : t("common.copy")}
             </Button>
           </div>
           {copyError && <p className="text-xs text-destructive">{copyError}</p>}

@@ -1,6 +1,7 @@
 import { Check, Moon, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAccentTheme } from "@/hooks/useAccentTheme";
+import { useI18n } from "@/lib/i18n";
 import type { AccentId } from "@/lib/accentTheme";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 export function AccentThemePicker({ compact = false }: Props) {
   const { accent, setAccent, oled, setOled, accents } = useAccentTheme();
+  const { t } = useI18n();
 
   return (
     <div className={cn("space-y-4", compact ? "text-xs" : "")}>
@@ -16,7 +18,7 @@ export function AccentThemePicker({ compact = false }: Props) {
         <div className="space-y-0.5">
           <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
             <Palette className="h-4 w-4 text-theme-accent" />
-            <span>Accent Theme</span>
+            <span>{t("settings.accentColor")}</span>
           </div>
           <p className="text-xs text-muted-foreground">
             Personalize your connection glow and UI highlights

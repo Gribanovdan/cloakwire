@@ -31,6 +31,7 @@ import { PresetPicker } from "./PresetPicker";
 import { RuleSetsPanel } from "./RuleSetsPanel";
 import { ProcessPicker } from "./ProcessPicker";
 import { newRuleId } from "@/lib/presets";
+import { useI18n } from "@/lib/i18n";
 import type { CustomRule, CustomRuleSet, GeneratorSettings, Outbound, RoutingOptions } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ interface Props {
 }
 
 export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
+  const { t } = useI18n();
   const r = settings.routing;
   const updateRouting = (patch: Partial<RoutingOptions>) =>
     onSettingsChange({ ...settings, routing: { ...r, ...patch } });
@@ -133,9 +135,9 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Routing & Split Tunneling</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t("routing.title")}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Pick which programs go through the VPN. Everything else goes direct.
+            {t("routing.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -144,10 +146,10 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
             size="sm"
             onClick={onResetRouting}
             disabled={!isTunActive}
-            title={isTunActive ? "Reset routing" : "Switch to TUN mode to edit"}
+            title={isTunActive ? t("common.refresh") : "TUN mode required"}
           >
             <RotateCcw size={14} className="mr-1" />
-            Reset
+            {t("common.refresh")}
           </Button>
         </div>
       </div>
