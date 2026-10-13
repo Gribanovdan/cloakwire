@@ -386,7 +386,7 @@ export function HomeScreen({
 
         {/* Hero Footer */}
         <div className="relative z-10 flex items-center justify-between border-t border-white/5 pt-3 text-[11px] font-mono text-muted-foreground/70">
-          <span>{t("home.tunMode")} • {t("home.secureConnection")}</span>
+          <span>{t("home.tunMode")}</span>
           <span>{vpn.engine === "xray" ? "Xray Core" : "sing-box Core"}</span>
         </div>
       </div>

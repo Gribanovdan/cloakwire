@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Loader2, RefreshCw, Shield, ShieldCheck, Terminal } from "lucide-react";
+import { RefreshCw, Terminal } from "lucide-react";
 import { api } from "@/lib/api";
 import { vpnCoreVersion } from "@/lib/vpn";
 import { cn } from "@/lib/utils";
 import type { CustomRule, GeneratorSettings, KillSwitchMode, RoutingOptions } from "@/lib/types";
-import { runLeakDiagnostics, type LeakTestResult } from "@/lib/leakTest";
 import { newRuleId } from "@/lib/presets";
 import { SectionCard, SectionHeader, SettingRow } from "../components/SectionCard";
 import { Switch } from "../components/Switch";
@@ -123,21 +122,6 @@ export function SettingsScreen({
     }
   };
 
-  const [testingLeaks, setTestingLeaks] = useState(false);
-  const [leakResult, setLeakResult] = useState<LeakTestResult | null>(null);
-
-  const handleTestLeaks = async () => {
-    setTestingLeaks(true);
-    setLeakResult(null);
-    try {
-      const res = await runLeakDiagnostics(undefined, (k, vars) => t(k as any, vars));
-      setLeakResult(res);
-    } catch {
-      // ignore
-    } finally {
-      setTestingLeaks(false);
-    }
-  };
 
   // Remote rule-sets switch: enables/disables every remote rule-set.
   const ruleSets = settings.routing.rule_sets;
@@ -204,67 +188,7 @@ export function SettingsScreen({
         </div>
       </SectionCard>
 
-      <SectionCard>
-        <SectionHeader title={t("settings.securityAndPrivacy")} />
-        <div className="divide-y divide-white/5">
 
-          <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                Leak Diagnostics (IP, DNS, WebRTC):
-              </span>
-              <button
-                type="button"
-                onClick={handleTestLeaks}
-                disabled={testingLeaks}
-                className="flex items-center gap-1.5 rounded-lg border border-theme-accent-subtle bg-theme-subtle px-2.5 py-1 text-xs font-medium text-theme-accent hover:opacity-90 transition disabled:opacity-50"
-              >
-                {testingLeaks ? (
-                  <>
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Testing...
-                  </>
-                ) : (
-                  <>
-                    <Shield className="h-3 w-3" />
-                    Run Leak Test
-                  </>
-                )}
-              </button>
-            </div>
-
-            {leakResult && (
-              <div
-                className={cn(
-                  "rounded-lg border p-2.5 text-xs space-y-1",
-                  leakResult.verdict === "protected"
-                    ? "border-theme-accent-subtle bg-theme-subtle text-theme-accent"
-                    : leakResult.verdict === "leaking"
-                      ? "border-destructive/50 bg-destructive/15 text-destructive"
-                      : "border-white/10 bg-black/40 text-foreground",
-                )}
-              >
-                <div className="flex items-center justify-between font-semibold">
-                  <span>
-                    {leakResult.verdict === "protected"
-                      ? "✓ Protected (No leaks detected)"
-                      : leakResult.verdict === "leaking"
-                        ? "⚠ Warning: Leak detected!"
-                        : "Test completed"}
-                  </span>
-                </div>
-                <div className="text-[11px] space-y-0.5 text-foreground/90">
-                  <div>IP: <span className="font-mono">{leakResult.publicIp}</span> ({leakResult.country})</div>
-                  {leakResult.dnsServer && <div>DNS: <span className="font-mono">{leakResult.dnsServer}</span></div>}
-                  {leakResult.webrtcIps.length > 0 && (
-                    <div>WebRTC IP: <span className="font-mono">{leakResult.webrtcIps.join(", ")}</span></div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </SectionCard>
 
       <SectionCard>
         <SectionHeader title={t("settings.network")} />

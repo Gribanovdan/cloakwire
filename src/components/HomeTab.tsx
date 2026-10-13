@@ -396,12 +396,7 @@ export function HomeTab({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs">
-              <span className="flex items-center gap-1 text-theme-accent font-sans font-medium text-[11px]">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>{t("home.secureConnection")}</span>
-              </span>
-              <span>•</span>
+            <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground text-[11px]">
               <span>{isXrayRunning ? "Xray Core" : "sing-box Core"}</span>
             </div>
           </div>

@@ -8,9 +8,6 @@ import {
   RotateCcw,
   Save,
   Settings2,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
 } from "lucide-react";
 // `Play` removed in v0.3.1 — the Start button in this tab was
 // confusing (cached config, separate path from the real Connect in
@@ -29,7 +26,6 @@ import {
 import { cn } from "@/lib/utils";
 import { previewToSingboxJson } from "./previewConfig";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
-import { runLeakDiagnostics, type LeakTestResult } from "@/lib/leakTest";
 import { useI18n } from "@/lib/i18n";
 import type { GeneratorSettings, KillSwitchMode, Outbound, TunnelMode } from "@/lib/types";
 
@@ -136,36 +132,7 @@ export function ConfigBuilder({
     }
   };
 
-  const [testingLeaks, setTestingLeaks] = useState(false);
-  const [leakResult, setLeakResult] = useState<LeakTestResult | null>(null);
-  const [resettingFirewall, setResettingFirewall] = useState(false);
-  const [firewallResetMsg, setFirewallResetMsg] = useState<string | null>(null);
 
-  const handleTestLeaks = async () => {
-    setTestingLeaks(true);
-    setLeakResult(null);
-    try {
-      const res = await runLeakDiagnostics(undefined, (k, vars) => t(k as any, vars));
-      setLeakResult(res);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setTestingLeaks(false);
-    }
-  };
-
-  const handleResetFirewall = async () => {
-    setResettingFirewall(true);
-    try {
-      await api.cleanupKillSwitch();
-      setFirewallResetMsg(t("config.firewallSuccess"));
-    } catch (e) {
-      setFirewallResetMsg(t("config.firewallError", { error: e instanceof Error ? e.message : String(e) }));
-    } finally {
-      setResettingFirewall(false);
-      setTimeout(() => setFirewallResetMsg(null), 4000);
-    }
-  };
 
   const update = <K extends keyof GeneratorSettings>(
     key: K,
@@ -388,109 +355,7 @@ export function ConfigBuilder({
           </label>
         </div>
 
-        {/* Security & Privacy */}
-        <div className="space-y-3 rounded-lg border border-border/80 bg-card/20 p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-theme-accent">
-              <ShieldCheck className="h-4 w-4" />
-              <span>{t("config.securityTitle")}</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleResetFirewall}
-              disabled={resettingFirewall}
-              className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
-              title={t("config.resetFirewallTooltip")}
-            >
-              {resettingFirewall ? t("config.firewallResetting") : t("config.resetFirewall")}
-            </button>
-          </div>
 
-          {firewallResetMsg && (
-            <div className="rounded border border-theme-accent-subtle bg-theme-subtle p-2 text-xs text-theme-accent">
-              {firewallResetMsg}
-            </div>
-          )}
-
-          {/* Leak Diagnostics */}
-          <div className="pt-1">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {t("config.leakDiagTitle")}
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleTestLeaks}
-                disabled={testingLeaks}
-                className="h-7 text-xs"
-              >
-                {testingLeaks ? (
-                  <>
-                    <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                    {t("config.testingLeaks")}
-                  </>
-                ) : (
-                  <>
-                    <Shield className="mr-1.5 h-3 w-3" />
-                    {t("config.runLeakTest")}
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {leakResult && (
-              <div
-                className={cn(
-                  "mt-2 rounded-lg border p-2.5 text-xs space-y-1.5",
-                  leakResult.verdict === "protected"
-                    ? "border-theme-accent-subtle bg-theme-subtle text-theme-accent"
-                    : leakResult.verdict === "leaking"
-                      ? "border-destructive/50 bg-destructive/15 text-destructive"
-                      : "border-border bg-card/40 text-foreground",
-                )}
-              >
-                <div className="flex items-center justify-between font-semibold">
-                  <span>
-                    {leakResult.verdict === "protected"
-                      ? t("config.protectedVerdict")
-                      : leakResult.verdict === "leaking"
-                        ? t("config.leakWarningVerdict")
-                        : t("config.resultVerdict")}
-                  </span>
-                  <span className="text-[10px] font-mono opacity-70">
-                    {new Date(leakResult.timestamp).toLocaleTimeString()}
-                  </span>
-                </div>
-                <div className="text-[11px] space-y-0.5 text-foreground/90">
-                  <div>
-                    <span className="text-muted-foreground">{t("config.externalIp")}:</span>{" "}
-                    <span className="font-mono font-medium">{leakResult.publicIp}</span> ({leakResult.country}, {leakResult.isp})
-                  </div>
-                  {leakResult.dnsServer && (
-                    <div>
-                      <span className="text-muted-foreground">{t("config.dnsServer")}:</span>{" "}
-                      <span className="font-mono">{leakResult.dnsServer}</span>
-                    </div>
-                  )}
-                  {leakResult.webrtcIps.length > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">{t("config.webrtcIp")}:</span>{" "}
-                      <span className="font-mono">{leakResult.webrtcIps.join(", ")}</span>
-                    </div>
-                  )}
-                </div>
-                {leakResult.details.length > 0 && (
-                  <ul className="text-[10px] space-y-0.5 opacity-85 list-disc pl-3 pt-0.5">
-                    {leakResult.details.map((d, i) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/*         <div className="rounded-md border border-border bg-card/30 px-2 py-1.5 text-xs">
           <div className="flex items-center gap-2">
