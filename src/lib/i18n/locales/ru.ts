@@ -104,7 +104,6 @@ export const ru: TranslationSchema = {
   },
   servers: {
     title: "Серверы и подписки",
-    subtitle: "Управление точками подключения и профилями VPN",
     searchPlaceholder: "Поиск серверов по названию или стране...",
     all: "Все",
     proxies: "Прокси",

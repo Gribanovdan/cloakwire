@@ -5,7 +5,6 @@ import { Badge } from "@/components/Badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/Card";
@@ -76,15 +75,10 @@ export function ServersTab({
       <Card className="bento-card">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-theme-accent" />
-                {t("servers.title")}
-              </CardTitle>
-              <CardDescription>
-                {t("servers.subtitle")}
-              </CardDescription>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-theme-accent" />
+              {t("servers.title")}
+            </CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -170,21 +164,16 @@ export function ServersTab({
       <Card className="bento-card">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                <Rss className="h-4 w-4 text-theme-accent" />
-                {t("servers.subscriptions")}
-                <Badge
-                  variant="secondary"
-                  className="badge-theme px-2 py-0.5 text-xs font-mono"
-                >
-                  {subs.length}
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                {t("servers.subtitle")}
-              </CardDescription>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Rss className="h-4 w-4 text-theme-accent" />
+              {t("servers.subscriptions")}
+              <Badge
+                variant="secondary"
+                className="badge-theme px-2 py-0.5 text-xs font-mono"
+              >
+                {subs.length}
+              </Badge>
+            </CardTitle>
             <Button
               variant="outline"
               size="sm"
@@ -215,21 +204,16 @@ export function ServersTab({
       <Card className="bento-card">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                <Server className="h-4 w-4 text-theme-accent" />
-                {t("servers.manual")}
-                <Badge
-                  variant="secondary"
-                  className="badge-theme px-2 py-0.5 text-xs font-mono"
-                >
-                  {manualProfiles.length}
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                {t("servers.subtitle")}
-              </CardDescription>
-            </div>
+            <CardTitle className="flex items-center gap-2">
+              <Server className="h-4 w-4 text-theme-accent" />
+              {t("servers.manual")}
+              <Badge
+                variant="secondary"
+                className="badge-theme px-2 py-0.5 text-xs font-mono"
+              >
+                {manualProfiles.length}
+              </Badge>
+            </CardTitle>
             {manualProfiles.length > 0 && (
               <Button
                 size="sm"

@@ -104,7 +104,6 @@ export const zhCN: TranslationSchema = {
   },
   servers: {
     title: "节点与订阅",
-    subtitle: "管理您的 VPN 节点和订阅来源",
     searchPlaceholder: "按节点名称或国家搜索...",
     all: "全部",
     proxies: "代理节点",

@@ -102,7 +102,6 @@ export const en = {
   },
   servers: {
     title: "Servers & Subscriptions",
-    subtitle: "Manage your VPN endpoints and proxies",
     searchPlaceholder: "Search servers by name or country...",
     all: "All",
     proxies: "Proxies",
