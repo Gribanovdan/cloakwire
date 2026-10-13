@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.6] - 2026-10-13
+
+### 🍏 macOS Administrator Privilege Elevation (osascript & SUID)
+- **One-Time Administrator Authentication**: Integrated native macOS elevation prompt via `osascript` when starting TUN mode. Users authenticate once (Touch ID or password) to set SUID root (`chown root:wheel && chmod 4755`) on the `sing-box` binary.
+- **Passwordless Subsequent Connections**: All future tunnel startups, reconnections, and profile switches launch seamlessly with root privileges without prompting for credentials again.
+- **Granular Privilege Checking**: Profiles running in Proxy mode (mixed/socks/http without TUN) bypass elevation entirely. Automatic re-elevation check triggered if the binary is replaced by an updater.
+
+### 🌐 Full Multilingual Localization (EN, RU, ZH)
+- **100% Multilingual Coverage**: Completed exhaustive translation audit across all desktop tabs, dialogs, status badges, hero cards, logs, and mobile screens.
+- **Typed Zero-Dependency i18n Engine**: Added reactive translation system supporting English (`en`), Russian (`ru`), and Simplified Chinese (`zh-CN`).
+- **In-App Language Switcher**: Added dedicated language selectors in Settings across both Desktop and Mobile.
+
+### ☀️ Adaptive Light Theme & Theme Mode Engine
+- **Full Light Mode Support**: Added crisp, high-contrast light theme with carefully tuned contrast, border definitions, and readable typography across all views.
+- **Adaptive ThemeMode Engine**: Full support for `system` (auto-detect OS preference), `light`, `dark`, and `oled` pitch-black modes.
+- **Theme Mode Switchers**: Integrated quick theme mode selectors in Desktop and Mobile Settings.
+
+### 📱 Android Home Screen Widgets & Mobile Enhancements
+- **Interactive VPN Toggle Widget**: One-tap home screen connection toggle reflecting live VPN status and synchronized with app accent colors.
+- **Minimal 1x1 Power Button Widget**: Compact 1x1 widget layout for space-efficient home screen layouts.
+- **System Synchronization**: Wired `VpnEvents` state notifications, auto-grant permissions, and fixed Android clipboard paste handling.
+
+### 🧹 UI & UX Simplification
+- **Removed Hero Redundancy**: Removed "Secure connection" / "Ваш интернет-трафик надежно защищен и зашифрован" banner and shield footer for a cleaner, modern look.
+- **Removed Obsolete Leak Diagnostics**: Streamlined Settings by eliminating redundant firewall reset and leak diagnostics cards.
+- **Server Subtitle Polish**: Removed duplicate subtitle descriptions across connection cards.
+
+---
+
+### Русская версия (кратко)
+- **Запрос прав администратора на macOS (osascript)**: однократный нативный запрос прав (Touch ID / пароль) для установки SUID root на бинарник `sing-box`. Все последующие подключения в режиме TUN запускаются мгновенно без повторного ввода пароля.
+- **Полная локализация (Русский, Английский, Китайский)**: 100% перевод всех экранов, вкладок, бейджей и диалогов на десктопе и мобильных устройствах. Переключатель языка в настройках.
+- **Светлая тема и адаптивный движок тем**: полноценная поддержка светлой, тёмной, системной и OLED-тем с переключателем в настройках.
+- **Виджеты для Android**: интерактивный виджет переключения VPN на рабочем столе с индикацией статуса и синхронизацией акцентного цвета.
+- **Упрощение интерфейса**: удалены избыточные плашки и устаревший блок диагностики утечек.
+
+---
+
 ## [1.4.5] - 2026-10-08
 
 ### 🎨 Custom Accent Themes & OLED Mode (Desktop & Mobile)
