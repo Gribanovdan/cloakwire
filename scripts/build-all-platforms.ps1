@@ -70,9 +70,9 @@ $sshExe = "C:\Program Files\Git\usr\bin\ssh.exe"
 $scpExe = "C:\Program Files\Git\usr\bin\scp.exe"
 
 git archive -o "$DistDir\v$Version-source.tar.gz" HEAD
-& $scpExe -i $sshKey -o StrictHostKeyChecking=no "$DistDir\v$Version-source.tar.gz" "$macHost`:/tmp/v$Version-source.tar.gz"
+& $scpExe -i $sshKey -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DistDir\v$Version-source.tar.gz" "$macHost`:/tmp/v$Version-source.tar.gz"
 
-& $sshExe -i $sshKey -o StrictHostKeyChecking=no $macHost @"
+& $sshExe -i $sshKey -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $macHost @"
 set -e
 mkdir -p `$HOME/cloakwire-builds/cloakwire-v$Version
 cd `$HOME/cloakwire-builds/cloakwire-v$Version
@@ -112,7 +112,7 @@ ditto -c -k --keepParent src-tauri/target/x86_64-apple-darwin/release/bundle/mac
 hdiutil create -volname "Cloakwire" -srcfolder src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Cloakwire.app -ov -format UDZO dist-release/Cloakwire_$Version`_x64.dmg
 "@
 
-& $scpExe -i $sshKey -o StrictHostKeyChecking=no "$macHost`:/Users/alexeyka/cloakwire-builds/cloakwire-v$Version/dist-release/Cloakwire_$Version`_*" "$DistDir\"
+& $scpExe -i $sshKey -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$macHost`:/Users/alexeyka/cloakwire-builds/cloakwire-v$Version/dist-release/Cloakwire_$Version`_*" "$DistDir\"
 
 # 4. Signing & Manifest Generation
 Write-Host "`n[4/4] Signing release artifacts and generating latest.json..." -ForegroundColor Yellow
