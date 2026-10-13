@@ -1579,5 +1579,30 @@ pub async fn update_tray_status(
     Ok(())
 }
 
+#[tauri::command]
+pub async fn check_macos_elevation(app: AppHandle) -> AppResult<bool> {
+    #[cfg(target_os = "macos")]
+    {
+        if let Ok(bin) = crate::engine::singbox::locate_binary(&app) {
+            return Ok(crate::platform::macos::is_binary_elevated(&bin));
+        }
+    }
+    let _ = app;
+    Ok(true)
+}
+
+#[tauri::command]
+pub async fn request_macos_elevation(app: AppHandle) -> AppResult<()> {
+    #[cfg(target_os = "macos")]
+    {
+        let bin = crate::engine::singbox::locate_binary(&app)?;
+        crate::platform::macos::ensure_binary_elevated(&bin)
+            .await
+            .map_err(AppError::TunCapabilities)?;
+    }
+    let _ = app;
+    Ok(())
+}
+
 
 

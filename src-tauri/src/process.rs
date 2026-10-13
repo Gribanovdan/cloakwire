@@ -219,6 +219,12 @@ impl ProcessManager {
         if !self.is_active_run(run_id).await {
             return Ok(());
         }
+        #[cfg(all(target_os = "macos", not(test)))]
+        {
+            if let Err(e) = crate::platform::macos::ensure_binary_elevated(&binary).await {
+                return Err(AppError::TunCapabilities(e));
+            }
+        }
         let mut cmd = Command::new(&binary);
         cmd.args(&args)
             .envs(env.iter().map(|(k, v)| (k, v)))
@@ -1341,7 +1347,18 @@ async fn set_tun_dns_from_config(
     }
 }
 
-async fn check_tun_capabilities(_binary: &Path, _config_path: &Path) -> Result<(), String> {
+async fn check_tun_capabilities(binary: &Path, config_path: &Path) -> Result<(), String> {
+    if !crate::platform::macos::config_requires_tun(config_path) {
+        return Ok(());
+    }
+    #[cfg(all(target_os = "macos", not(test)))]
+    {
+        crate::platform::macos::ensure_binary_elevated(binary).await?;
+    }
+    #[cfg(not(all(target_os = "macos", not(test))))]
+    {
+        let _ = binary;
+    }
     Ok(())
 }
 

@@ -36,6 +36,8 @@ pub mod error;
 pub mod killswitch;
 pub mod parser;
 #[cfg(not(target_os = "android"))]
+pub mod platform;
+#[cfg(not(target_os = "android"))]
 pub mod process;
 #[cfg(not(target_os = "android"))]
 #[path = "subscriptions/mod.rs"]
@@ -309,6 +311,8 @@ pub fn run() {
             commands::cleanup_kill_switch,
             commands::check_leak_status,
             commands::update_tray_status,
+            commands::check_macos_elevation,
+            commands::request_macos_elevation,
         ])
         .run(tauri::generate_context!())
         .expect("error while running singbox-client");
