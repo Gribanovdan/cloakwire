@@ -7,51 +7,53 @@ const k = await import(KIT_URL);
 
 // Instrument Layout
 const WIDTH = 680;
-const HEIGHT = 440;
+const HEIGHT = 420;
 
-const PLATE = { x: -140, y: -80, w: 280, d: 160, r: 8 };
-const PLATE_H = 10;
+// Base Plate: heavy precision surface plate
+const PLATE = { x: -130, y: -65, w: 260, d: 130, r: 8 };
+const PLATE_H = 12;
 const FOOT_H = 5;
 
-// Power knife switch
-const PWR_X = -92;
-const PWR_Y = -15;
+// Station 1: Power Knife Switch (Left)
+const PWR_X = -82;
+const PWR_Y = 0;
+const PWR_BOX = { x: PWR_X - 16, y: PWR_Y - 22, w: 32, d: 44, r: 3 };
 
-// Rotary protocol selector knob
-const KNOB_X = -20;
-const KNOB_Y = 10;
-const KNOB_R = 26;
+// Station 2: Rotary Protocol Knob (Center-Left)
+const KNOB_X = -28;
+const KNOB_Y = 0;
+const KNOB_R = 21;
 
-// Split tunneling rail
-const RAIL_FROM = 30;
-const RAIL_TO = 120;
-const RAIL_Y1 = -22;
-const RAIL_Y2 = -4;
-const CARRIAGE_W = 20;
-const CARRIAGE_D = 28;
-const STOPS = [42, 75, 108]; // DIRECT, SPLIT, GLOBAL
-
-// Latency analog dial indicator
-const DIAL = [75, 42];
-const DIAL_R = 30;
-const DIAL_Z = 12;
-const DIAL_H = 14;
+// Station 3: Precision Analog Ping Dial (Center-Right)
+const DIAL_X = 26;
+const DIAL_Y = 0;
+const DIAL_R = 22;
+const DIAL_Z = 6;
+const DIAL_H = 12;
 const DIAL_TOP = DIAL_Z + DIAL_H;
-const POST = [42, 54];
-const POST_TOP = DIAL_TOP + 8;
+
+// Station 4: Split Tunneling Rail & Carriage (Far-Right)
+const RAIL_FROM = 62;
+const RAIL_TO = 118;
+const RAIL_Y1 = -16;
+const RAIL_Y2 = 16;
+const CARRIAGE_W = 18;
+const CARRIAGE_D = 40;
+const CARRIAGE_Z = 3;
+const CARRIAGE_TOP = 8;
+const STOPS = [72, 90, 108]; // DIRECT, SPLIT, GLOBAL
 
 const P = k.fitProjection(
   [
-    [PLATE.x - 14, PLATE.y - 14, -PLATE_H - FOOT_H],
-    [PLATE.x + PLATE.w + 14, PLATE.y + PLATE.d + 14, 0],
-    [POST[0], POST[1], POST_TOP + 4],
-    [DIAL[0] + DIAL_R + 6, DIAL[1] + DIAL_R + 6, DIAL_TOP + 6],
-    [PWR_X - 15, PWR_Y - 15, 45],
-    [KNOB_X - KNOB_R, KNOB_Y - KNOB_R, 30]
+    ...k.boxCorners(PLATE, -PLATE_H - FOOT_H, 0),
+    [PWR_X - 18, PWR_Y - 24, 38],
+    [KNOB_X - KNOB_R, KNOB_Y - KNOB_R, 20],
+    [DIAL_X + DIAL_R, DIAL_Y + DIAL_R, DIAL_TOP + 4],
+    [RAIL_TO + 6, RAIL_Y2 + 6, CARRIAGE_TOP + 14]
   ],
   WIDTH,
   HEIGHT,
-  { pad: 28, azimuth: 44, elevation: 32 }
+  { pad: 32, azimuth: 44, elevation: 30 }
 );
 
 const at = (pt) => k.iso(pt, P);
@@ -62,103 +64,136 @@ const byDepth = (pts) => [...pts].sort((a, b) => k.depthOf([a[0], a[1], 0], P) -
 
 function buildPlate() {
   const out = [];
-  // Shadow halo
+  // Shadow halo under plate
   out.push(`<path class="iso-halo" d="${k.haloOf(PLATE, -PLATE_H - FOOT_H, PLATE_H, P)}"/>`);
 
   // Rubber feet on cylindrical risers
-  for (const [x, y] of byDepth(k.corners(PLATE, 20))) {
-    out.push(S(k.cylinder(x, y, 7.5, -PLATE_H - FOOT_H, 2, P, 24), { tone: "lo" }));
-    out.push(S(k.cylinder(x, y, 5.8, -PLATE_H - FOOT_H + 2, FOOT_H - 2, P, 24), { tone: "mid" }));
+  for (const [x, y] of byDepth(k.corners(PLATE, 22))) {
+    out.push(S(k.cylinder(x, y, 7, -PLATE_H - FOOT_H, 1.8, P, 24), { tone: "lo" }));
+    out.push(S(k.cylinder(x, y, 5.2, -PLATE_H - FOOT_H + 1.8, FOOT_H - 1.8, P, 24), { tone: "mid" }));
   }
 
   // Solid base slab
-  out.push(S(k.slabOf(PLATE, -PLATE_H, PLATE_H, P, 8, 1.5), { tone: "mid" }));
+  out.push(S(k.slabOf(PLATE, -PLATE_H, PLATE_H, P, 8, 1.6), { tone: "mid" }));
   out.push(L(k.planOutline(k.insetPlan(PLATE, 5), 0, P), { tone: "lo" }));
 
   // Corner hex mounting screws
-  const screws = k.corners(PLATE, 9);
-  out.push(L(screws.map(([x, y]) => k.ring(x, y, 2.5, 0, P, 16)).join(""), { tone: "lo" }));
-  out.push(D(screws.map(([x, y]) => at([x, y, 0])), { size: 0.6 }));
+  const screws = k.corners(PLATE, 10);
+  out.push(L(screws.map(([x, y]) => k.ring(x, y, 2.2, 0, P, 16)).join(""), { tone: "lo" }));
+  out.push(D(screws.map(([x, y]) => at([x, y, 0])), { size: 0.5 }));
 
-  // Engraved metal nameplate
-  const tag = { x: -75, y: -72, w: 150, d: 14, r: 2 };
-  out.push(S(k.slabOf(tag, 0, 0.8, P, 2, 0.2), { tone: "lo", crease: "none" }));
-  out.push(L(k.planOutline(tag, 0.8, P), { tone: "mid" }));
-  const tagScrews = [
-    [tag.x + 4, tag.y + tag.d / 2, 0.8],
-    [tag.x + tag.w - 4, tag.y + tag.d / 2, 0.8]
-  ];
-  out.push(D(tagScrews.map(pt => at(pt)), { size: 0.5 }));
+  // Engraved metal nameplate in the rear-center
+  const tag = { x: -48, y: -58, w: 96, d: 11, r: 1.5 };
+  out.push(S(k.slabOf(tag, 0, 0.6, P, 2), { tone: "lo", crease: "none" }));
+  out.push(L(k.planOutline(tag, 0.6, P), { tone: "mid" }));
+  out.push(D([at([tag.x + 3.5, tag.y + tag.d / 2, 0.6]), at([tag.x + tag.w - 3.5, tag.y + tag.d / 2, 0.6])], { size: 0.45 }));
+  out.push(k.faceTextSvg(k.topMatrix([0, tag.y + tag.d / 2 + 1], 0.6, P, "x"), "CLOAKWIRE CRYPTOGRAPHIC BENCH", { size: 2.3, tone: "hi", anchor: "middle" }));
 
-  // Nameplate text in isometric plane
-  const tagCenter = [tag.x + tag.w / 2, tag.y + tag.d / 2 + 1, 0.8];
-  const tagPt = at(tagCenter);
-  out.push(`<text x="${tagPt[0].toFixed(1)}" y="${tagPt[1].toFixed(1)}" class="iso-face-text" data-tone="hi" font-size="7.5" font-weight="bold" text-anchor="middle">CLOAKWIRE DUAL-CORE CRYPTOGRAPHIC BENCH · UNIT 01</text>`);
-
-  // Ruler tick strip along front edge
-  const strip = { x: -130, y: PLATE.y + PLATE.d - 16, w: 260, d: 9, r: 1 };
+  // Front vernier ruler strip
+  const strip = { x: -110, y: PLATE.y + PLATE.d - 14, w: 220, d: 7, r: 1 };
   out.push(S(k.slabOf(strip, 0, 0.6, P, 2), { tone: "lo", crease: "none" }));
-  const ticks = k.topTicks(strip.x + 6, strip.x + strip.w - 6, 5, 5, strip.y + 1, 0.6, [2.5, 4.5], P);
+  const ticks = k.topTicks(strip.x + 4, strip.x + strip.w - 4, 4, 5, strip.y + 0.8, 0.6, [2, 3.6], P);
   out.push(L(ticks.minor, { tone: "lo" }), L(ticks.major, { tone: "mid" }));
+  out.push(D([at([strip.x + 2, strip.y + 3.5, 0.6]), at([strip.x + strip.w - 2, strip.y + 3.5, 0.6])], { size: 0.45 }));
+
+  // Surface conduit traces connecting the modules
+  const c1From = PWR_BOX.x + PWR_BOX.w;
+  const c1To = KNOB_X - KNOB_R - 3;
+  out.push(S(k.slabOf({ x: c1From, y: -1.5, w: c1To - c1From, d: 3, r: 0.8 }, 0, 1.8, P, 2), { tone: "lo" }));
+  out.push(S(k.slabOf({ x: (c1From + c1To) / 2 - 2, y: -3, w: 4, d: 6, r: 0.8 }, 0, 2.6, P, 2), { tone: "mid" }));
+  out.push(D([at([(c1From + c1To) / 2, -2.2, 2.6]), at([(c1From + c1To) / 2, 2.2, 2.6])], { size: 0.35, tone: "lo" }));
+
+  const c2From = KNOB_X + KNOB_R + 3;
+  const c2To = DIAL_X - DIAL_R - 3;
+  out.push(S(k.slabOf({ x: c2From, y: -1.5, w: c2To - c2From, d: 3, r: 0.8 }, 0, 1.8, P, 2), { tone: "lo" }));
+  out.push(S(k.slabOf({ x: (c2From + c2To) / 2 - 2, y: -3, w: 4, d: 6, r: 0.8 }, 0, 2.6, P, 2), { tone: "mid" }));
+  out.push(D([at([(c2From + c2To) / 2, -2.2, 2.6]), at([(c2From + c2To) / 2, 2.2, 2.6])], { size: 0.35, tone: "lo" }));
+
+  const c3From = DIAL_X + DIAL_R + 3;
+  const c3To = RAIL_FROM - 4;
+  out.push(S(k.slabOf({ x: c3From, y: -1.5, w: c3To - c3From, d: 3, r: 0.8 }, 0, 1.8, P, 2), { tone: "lo" }));
+  out.push(S(k.slabOf({ x: (c3From + c3To) / 2 - 2, y: -3, w: 4, d: 6, r: 0.8 }, 0, 2.6, P, 2), { tone: "mid" }));
+  out.push(D([at([(c3From + c3To) / 2, -2.2, 2.6]), at([(c3From + c3To) / 2, 2.2, 2.6])], { size: 0.35, tone: "lo" }));
+
+  // Conduit pulse flow line
+  const pulseLine = k.lineOnTop([c1From, 0], [c3To, 0], 2, P);
+  out.push(`<path class="iso-line iso-conduit-flow" data-flow d="${pulseLine}" stroke="#34d399" stroke-width="1.2" opacity="0.85" />`);
 
   return out.join("");
 }
 
 function buildPowerUnit() {
   const out = [];
-  // Power block housing
-  const pwrBox = { x: PWR_X - 16, y: PWR_Y - 20, w: 32, d: 40, r: 3 };
-  out.push(S(k.slabOf(pwrBox, 0, 10, P, 3, 0.6), { tone: "mid" }));
-  out.push(L(k.planOutline(pwrBox, 10, P), { tone: "hi" }));
+  // Main milled chassis block
+  out.push(S(k.slabOf(PWR_BOX, 0, 9, P, 4, 0.8), { tone: "mid" }));
+  out.push(L(k.planOutline(PWR_BOX, 9, P), { tone: "hi" }));
 
-  // Bevel bezel for knife switch hinge
-  out.push(S(k.cylinder(PWR_X, PWR_Y - 5, 8, 10, 4, P, 24), { tone: "hi" }));
-  out.push(D([at([PWR_X, PWR_Y - 5, 14])], { size: 0.8 }));
+  // Corner hex cap screws
+  const screws = [
+    [PWR_BOX.x + 4, PWR_BOX.y + 4],
+    [PWR_BOX.x + PWR_BOX.w - 4, PWR_BOX.y + 4],
+    [PWR_BOX.x + 4, PWR_BOX.y + PWR_BOX.d - 4],
+    [PWR_BOX.x + PWR_BOX.w - 4, PWR_BOX.y + PWR_BOX.d - 4]
+  ];
+  out.push(D(screws.map(([x, y]) => at([x, y, 9])), { size: 0.45, tone: "mid" }));
 
-  // Indicator LED socket
-  out.push(S(k.cylinder(PWR_X, PWR_Y + 12, 4.5, 10, 2.5, P, 20), { tone: "lo" }));
-  // LED jewel (lights up when connected)
-  const ledPt = at([PWR_X, PWR_Y + 12, 12.5]);
-  out.push(`<circle cx="${ledPt[0].toFixed(1)}" cy="${ledPt[1].toFixed(1)}" r="3" class="iso-led-glow" fill="#34d399" style="filter: drop-shadow(0 0 6px #10b981); transition: all 0.3s;" />`);
+  // Rear pivot hinge upright blocks
+  const hinge1 = { x: PWR_X - 5, y: PWR_Y - 13, w: 3, d: 8, r: 0.8 };
+  const hinge2 = { x: PWR_X + 2, y: PWR_Y - 13, w: 3, d: 8, r: 0.8 };
+  out.push(S(k.slabOf(hinge1, 9, 6.5, P, 2, 0.4), { tone: "hi" }));
+  out.push(S(k.slabOf(hinge2, 9, 6.5, P, 2, 0.4), { tone: "hi" }));
 
-  // Switch label
-  const pwrLabelPt = at([PWR_X, PWR_Y - 24, 0]);
-  out.push(`<text x="${pwrLabelPt[0].toFixed(1)}" y="${pwrLabelPt[1].toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="7" font-weight="600" text-anchor="middle">POWER / TUNNEL</text>`);
+  // Front contact jaw uprights
+  const jaw1 = { x: PWR_X - 4.5, y: PWR_Y + 7, w: 2.8, d: 6, r: 0.8 };
+  const jaw2 = { x: PWR_X + 1.7, y: PWR_Y + 7, w: 2.8, d: 6, r: 0.8 };
+  out.push(S(k.slabOf(jaw1, 9, 6, P, 2, 0.3), { tone: "hi" }));
+  out.push(S(k.slabOf(jaw2, 9, 6, P, 2, 0.3), { tone: "hi" }));
+
+  // Indicator LED socket in front of jaw
+  out.push(S(k.cylinder(PWR_X, PWR_Y + 16, 3.8, 9, 2.2, P, 20), { tone: "lo" }));
+  // LED jewel
+  const ledPt = at([PWR_X, PWR_Y + 16, 11.2]);
+  out.push(`<circle cx="${ledPt[0].toFixed(1)}" cy="${ledPt[1].toFixed(1)}" r="2.8" class="iso-led-glow" fill="#34d399" style="filter: drop-shadow(0 0 6px #10b981); transition: all 0.3s;" />`);
 
   return `<g data-part="power-unit" class="iso-clickable" style="cursor: pointer;">${out.join("")}</g>`;
 }
 
-function buildPowerLever(active = false) {
-  // Lever arm that flips between OFF (leaning back) and ON (thrown forward)
-  const angle = active ? 25 : -25;
+function buildPowerLever(active = true) {
+  const angle = active ? 18 : -32;
   const rad = (angle * Math.PI) / 180;
-  const len = 28;
-  const zBase = 12;
-  const xEnd = PWR_X + len * Math.sin(rad) * 0.4;
-  const yEnd = PWR_Y - 5 + len * Math.sin(rad);
-  const zEnd = zBase + len * Math.cos(rad);
+  const len = 22;
+  const zPivot = 12.5;
+  const xEnd = PWR_X;
+  const yEnd = PWR_Y - 9 + len * Math.sin(rad);
+  const zEnd = zPivot + len * Math.cos(rad);
 
   const out = [];
-  // Pivot pin
-  out.push(S(k.cylinder(PWR_X, PWR_Y - 5, 2.8, 10, 5, P, 16), { tone: "lo" }));
-  // Lever rod
-  const p0 = at([PWR_X, PWR_Y - 5, zBase]);
+  // Brass pivot pin
+  out.push(S(k.cylinder(PWR_X, PWR_Y - 9, 2, 10, 4.5, P, 16), { tone: "lo" }));
+
+  // Knife blade bar
+  const p0 = at([PWR_X, PWR_Y - 9, zPivot]);
   const p1 = at([xEnd, yEnd, zEnd]);
-  out.push(`<line x1="${p0[0].toFixed(1)}" y1="${p0[1].toFixed(1)}" x2="${p1[0].toFixed(1)}" y2="${p1[1].toFixed(1)}" stroke="var(--anatomy-hi)" stroke-width="3" stroke-linecap="round" />`);
-  // Knurled knob handle
+  out.push(`<line x1="${p0[0].toFixed(1)}" y1="${p0[1].toFixed(1)}" x2="${p1[0].toFixed(1)}" y2="${p1[1].toFixed(1)}" stroke="var(--anatomy-hi)" stroke-width="2.8" stroke-linecap="round" />`);
+
+  // Handle insulator sleeve
+  const pHandleMid = at([xEnd, yEnd * 0.7 + (PWR_Y - 9) * 0.3, zEnd * 0.7 + zPivot * 0.3]);
+  out.push(`<circle cx="${pHandleMid[0].toFixed(1)}" cy="${pHandleMid[1].toFixed(1)}" r="2.5" fill="var(--anatomy-lo)" stroke="var(--anatomy-mid)" stroke-width="0.6" />`);
+
+  // Polished chrome spherical handle knob
   const knobCenter = at([xEnd, yEnd, zEnd]);
-  out.push(`<circle cx="${knobCenter[0].toFixed(1)}" cy="${knobCenter[1].toFixed(1)}" r="4.5" fill="var(--anatomy-strong)" stroke="var(--anatomy-lit)" stroke-width="1.2" />`);
+  out.push(`<circle cx="${knobCenter[0].toFixed(1)}" cy="${knobCenter[1].toFixed(1)}" r="4.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />`);
 
   return `<g data-part="power-lever" class="iso-clickable" style="cursor: pointer;">${out.join("")}</g>`;
 }
 
 function buildProtocolSelector() {
   const out = [];
-  // Raised round base
-  out.push(S(k.cylinder(KNOB_X, KNOB_Y, KNOB_R + 5, 0, 4, P, 32), { tone: "mid" }));
-  out.push(L(k.ring(KNOB_X, KNOB_Y, KNOB_R + 5, 4, P, 32), { tone: "hi" }));
+  // Raised round collar base
+  out.push(S(k.cylinder(KNOB_X, KNOB_Y, KNOB_R + 3.5, 0, 3.5, P, 32), { tone: "mid" }));
+  out.push(L(k.ring(KNOB_X, KNOB_Y, KNOB_R + 3.5, 3.5, P, 32), { tone: "hi" }));
 
-  // 4 detent ticks and labels for protocols
+  // 4 detent ticks and marks around collar
   const protocols = [
     { name: "VLESS", angle: -135 },
     { name: "HY2", angle: -45 },
@@ -168,162 +203,134 @@ function buildProtocolSelector() {
 
   for (const proto of protocols) {
     const rad = (proto.angle * Math.PI) / 180;
-    const rTick1 = KNOB_R + 1.5;
-    const rTick2 = KNOB_R + 4.5;
-    const rText = KNOB_R + 9;
-    const t0 = at([KNOB_X + rTick1 * Math.cos(rad), KNOB_Y + rTick1 * Math.sin(rad), 4]);
-    const t1 = at([KNOB_X + rTick2 * Math.cos(rad), KNOB_Y + rTick2 * Math.sin(rad), 4]);
-    out.push(`<line x1="${t0[0].toFixed(1)}" y1="${t0[1].toFixed(1)}" x2="${t1[0].toFixed(1)}" y2="${t1[1].toFixed(1)}" stroke="var(--anatomy-hi)" stroke-width="1.2" stroke-linecap="round" />`);
-
-    const txtPt = at([KNOB_X + rText * Math.cos(rad), KNOB_Y + rText * Math.sin(rad), 4]);
-    out.push(`<text x="${txtPt[0].toFixed(1)}" y="${(txtPt[1] + 2.5).toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="6.5" font-weight="bold" text-anchor="middle">${proto.name}</text>`);
+    const r1 = KNOB_R + 0.8;
+    const r2 = KNOB_R + 3.2;
+    const t0 = at([KNOB_X + r1 * Math.cos(rad), KNOB_Y + r1 * Math.sin(rad), 3.5]);
+    const t1 = at([KNOB_X + r2 * Math.cos(rad), KNOB_Y + r2 * Math.sin(rad), 3.5]);
+    out.push(`<line x1="${t0[0].toFixed(1)}" y1="${t0[1].toFixed(1)}" x2="${t1[0].toFixed(1)}" y2="${t1[1].toFixed(1)}" stroke="var(--anatomy-hi)" stroke-width="1.4" stroke-linecap="round" />`);
   }
 
-  // Knurled rotary knob
-  const knobBody = [];
-  knobBody.push(S(k.cylinder(KNOB_X, KNOB_Y, KNOB_R - 2, 4, 12, P, 32), { tone: "hi" }));
-  knobBody.push(L(k.ring(KNOB_X, KNOB_Y, KNOB_R - 2, 16, P, 32), { tone: "lit" }));
-  knobBody.push(L(k.ring(KNOB_X, KNOB_Y, KNOB_R - 4, 16, P, 32), { tone: "mid" }));
-  out.push(`<g data-part="protocol-knob" class="iso-clickable" style="cursor: pointer;">${knobBody.join("")}</g>`);
+  // Rotary knob body
+  const knobSolids = [];
+  knobSolids.push(S(k.cylinder(KNOB_X, KNOB_Y, KNOB_R, 3.5, 11, P, 36, 0.6), { tone: "hi", crease: "lo" }));
+  knobSolids.push(L(k.knurl(KNOB_X, KNOB_Y, KNOB_R, 6.5, 12.5, 36, P, 0.4), { tone: "lo" }));
+  knobSolids.push(L(k.sideArc(KNOB_X, KNOB_Y, KNOB_R, 6.5, P, 36), { tone: "faint" }));
+  knobSolids.push(L(k.sideArc(KNOB_X, KNOB_Y, KNOB_R, 12.5, P, 36), { tone: "faint" }));
+  knobSolids.push(L(k.ring(KNOB_X, KNOB_Y, KNOB_R - 2, 14.5, P, 36), { tone: "lo" }));
 
-  // Protocol knob label
-  const labelPt = at([KNOB_X, KNOB_Y - KNOB_R - 9, 0]);
-  out.push(`<text x="${labelPt[0].toFixed(1)}" y="${labelPt[1].toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="7" font-weight="600" text-anchor="middle">PROTOCOL SELECTOR</text>`);
-
+  out.push(`<g data-part="protocol-knob" class="iso-clickable" style="cursor: pointer;">${knobSolids.join("")}</g>`);
   return out.join("");
 }
 
 function buildKnobPointer(angleDeg = -135) {
-  // Arrow / line on top of the knob showing selected protocol
   const rad = (angleDeg * Math.PI) / 180;
-  const pCenter = at([KNOB_X, KNOB_Y, 16.2]);
-  const pEdge = at([KNOB_X + (KNOB_R - 5) * Math.cos(rad), KNOB_Y + (KNOB_R - 5) * Math.sin(rad), 16.2]);
+  const pCenter = at([KNOB_X, KNOB_Y, 14.7]);
+  const pEdge = at([KNOB_X + (KNOB_R - 4) * Math.cos(rad), KNOB_Y + (KNOB_R - 4) * Math.sin(rad), 14.7]);
   const out = [
     `<line x1="${pCenter[0].toFixed(1)}" y1="${pCenter[1].toFixed(1)}" x2="${pEdge[0].toFixed(1)}" y2="${pEdge[1].toFixed(1)}" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" />`,
-    `<circle cx="${pCenter[0].toFixed(1)}" cy="${pCenter[1].toFixed(1)}" r="2" fill="var(--anatomy-lit)" />`
+    `<circle cx="${pCenter[0].toFixed(1)}" cy="${pCenter[1].toFixed(1)}" r="2.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />`
   ];
   return `<g data-part="knob-pointer" class="iso-clickable" style="cursor: pointer;">${out.join("")}</g>`;
 }
 
+function buildLatencyDial() {
+  const out = [];
+  // Mounting pedestal collar on the base plate
+  out.push(S(k.cylinder(DIAL_X, DIAL_Y, DIAL_R + 3, 0, DIAL_Z, P, 32), { tone: "mid" }));
+  out.push(L(k.ring(DIAL_X, DIAL_Y, DIAL_R + 3, DIAL_Z, P, 32), { tone: "hi" }));
+
+  // Main dial gauge housing (puck)
+  out.push(S(k.cylinder(DIAL_X, DIAL_Y, DIAL_R, DIAL_Z, DIAL_H, P, 48, 0.8), { tone: "hi", crease: "lo" }));
+  // Knurled bezel ring
+  out.push(L(k.knurl(DIAL_X, DIAL_Y, DIAL_R, DIAL_TOP - 3.2, DIAL_TOP, 48, P, 0.3), { tone: "lo" }));
+  out.push(L(k.sideArc(DIAL_X, DIAL_Y, DIAL_R, DIAL_TOP - 3.2, P, 32), { tone: "faint" }));
+  out.push(L(k.ring(DIAL_X, DIAL_Y, DIAL_R - 2, DIAL_TOP, P, 48), { tone: "lo" }));
+
+  // Graduated radial ticks on dial face (0 to 100 ms)
+  const ticks = k.radialTicks(DIAL_X, DIAL_Y, DIAL_R - 3.2, 36, 6, DIAL_TOP, [1.4, 2.8], P, -Math.PI * 0.75, Math.PI * 1.5);
+  out.push(L(ticks.minor, { tone: "lo" }));
+  out.push(L(ticks.major, { tone: "mid" }));
+
+  // Center hub ring
+  out.push(L(k.ring(DIAL_X, DIAL_Y, 1.8, DIAL_TOP, P, 16), { tone: "mid" }));
+
+  // Engraved ISO face text inside dial
+  out.push(k.faceTextSvg(k.topMatrix([DIAL_X, DIAL_Y + 7], DIAL_TOP, P, "x"), "MS", { size: 2.2, tone: "lo", anchor: "middle" }));
+
+  return out.join("");
+}
+
+function buildDialNeedle(ms = 22) {
+  // Map 0 - 100 ms to -135deg to +135deg
+  const angleDeg = -135 + (Math.min(100, Math.max(0, ms)) / 100) * 270;
+  const angle = (angleDeg * Math.PI) / 180;
+  const pTail = at([DIAL_X - Math.sin(angle) * 3.5, DIAL_Y + Math.cos(angle) * 3.5, DIAL_TOP + 0.3]);
+  const pTip = at([DIAL_X + Math.sin(angle) * (DIAL_R - 4.5), DIAL_Y - Math.cos(angle) * (DIAL_R - 4.5), DIAL_TOP + 0.3]);
+  const pCenter = at([DIAL_X, DIAL_Y, DIAL_TOP + 0.4]);
+
+  const out = [
+    `<line x1="${pTail[0].toFixed(1)}" y1="${pTail[1].toFixed(1)}" x2="${pTip[0].toFixed(1)}" y2="${pTip[1].toFixed(1)}" stroke="#34d399" stroke-width="1.4" stroke-linecap="round" />`,
+    `<circle cx="${pCenter[0].toFixed(1)}" cy="${pCenter[1].toFixed(1)}" r="2.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.6" />`
+  ];
+  return `<g data-part="dial-needle">${out.join("")}</g>`;
+}
+
 function buildSplitRails() {
   const out = [];
-  // Twin guide rails
+  // Twin guide rails along x
   for (const y of [RAIL_Y1, RAIL_Y2]) {
-    // End stops / pill blocks
-    out.push(S(k.slabOf({ x: RAIL_FROM - 4, y: y - 3, w: 6, d: 6, r: 1 }, 0, 5, P, 1), { tone: "mid" }));
-    out.push(S(k.slabOf({ x: RAIL_TO - 2, y: y - 3, w: 6, d: 6, r: 1 }, 0, 5, P, 1), { tone: "mid" }));
-    // Rail rod
-    out.push(S(k.slabOf({ x: RAIL_FROM, y: y - 1.5, w: RAIL_TO - RAIL_FROM, d: 3, r: 1 }, 2, 3, P, 1), { tone: "hi" }));
+    out.push(S(k.slabOf({ x: RAIL_FROM, y: y - 2, w: RAIL_TO - RAIL_FROM, d: 4, r: 1 }, 0, 3, P, 3, 0.4), { tone: "mid" }));
+    out.push(D([RAIL_FROM + 5, RAIL_TO - 5].map(x => at([x, y, 3])), { size: 0.4, tone: "mid" }));
   }
 
-  // Routing track position markers
-  const modes = [
-    { name: "DIRECT", x: STOPS[0] },
-    { name: "SPLIT", x: STOPS[1] },
-    { name: "GLOBAL", x: STOPS[2] }
-  ];
+  // End stops at both ends
+  for (const x of [RAIL_FROM - 4, RAIL_TO]) {
+    out.push(S(k.slabOf({ x, y: RAIL_Y1 - 4, w: 5, d: (RAIL_Y2 - RAIL_Y1) + 8, r: 1.2 }, 0, 7, P, 3, 0.5), { tone: "mid" }));
+    out.push(D([at([x + 2.5, RAIL_Y1, 7]), at([x + 2.5, RAIL_Y2, 7])], { size: 0.45, tone: "mid" }));
+  }
 
-  for (let idx = 0; idx < modes.length; idx++) {
-    const m = modes[idx];
-    const markPt = at([m.x, (RAIL_Y1 + RAIL_Y2) / 2, 0.4]);
-    const txtPt = at([m.x, RAIL_Y2 + 9, 0]);
+  // Engraved index detent stops along the rail center
+  for (let idx = 0; idx < STOPS.length; idx++) {
+    const x = STOPS[idx];
     out.push(`<g data-part="mode-stop" data-mode-idx="${idx}" class="iso-clickable" style="cursor: pointer;">`);
-    out.push(D([markPt], { size: 0.8 }));
-    out.push(`<text x="${txtPt[0].toFixed(1)}" y="${txtPt[1].toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="6" font-weight="bold" text-anchor="middle">${m.name}</text>`);
+    out.push(D([at([x, 0, 0.6])], { size: 0.8, tone: "hi" }));
+    out.push(L(k.ring(x, 0, 2.2, 0.6, P, 16), { tone: "mid" }));
     out.push(`</g>`);
   }
-
-  // Label
-  const railLabel = at([(RAIL_FROM + RAIL_TO) / 2, RAIL_Y1 - 9, 0]);
-  out.push(`<text x="${railLabel[0].toFixed(1)}" y="${railLabel[1].toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="7" font-weight="600" text-anchor="middle">ROUTING MODE (SPLIT TUNNEL)</text>`);
 
   return out.join("");
 }
 
 function buildCarriage() {
   const out = [];
-  // Sliding carriage block
+  // Main sliding carriage block
   const cBox = { x: -CARRIAGE_W / 2, y: -CARRIAGE_D / 2, w: CARRIAGE_W, d: CARRIAGE_D, r: 3 };
-  out.push(S(k.slabOf(cBox, 3, 10, P, 3, 0.8), { tone: "mid" }));
-  out.push(L(k.planOutline(cBox, 13, P), { tone: "hi" }));
+  out.push(S(k.slabOf(cBox, CARRIAGE_Z, CARRIAGE_TOP - CARRIAGE_Z, P, 5, 0.6), { tone: "mid" }));
 
-  // Sleeve bushings on rails
-  out.push(S(k.cylinder(-CARRIAGE_W / 2 + 6, -CARRIAGE_D / 2 + 10, 4, 2, 8, P, 16), { tone: "lo" }));
-  out.push(S(k.cylinder(CARRIAGE_W / 2 - 6, -CARRIAGE_D / 2 + 10, 4, 2, 8, P, 16), { tone: "lo" }));
-  out.push(S(k.cylinder(-CARRIAGE_W / 2 + 6, CARRIAGE_D / 2 - 10, 4, 2, 8, P, 16), { tone: "lo" }));
-  out.push(S(k.cylinder(CARRIAGE_W / 2 - 6, CARRIAGE_D / 2 - 10, 4, 2, 8, P, 16), { tone: "lo" }));
+  // Sleeve bushings at corners
+  const bushings = [
+    [-CARRIAGE_W / 2 + 3.5, RAIL_Y1],
+    [CARRIAGE_W / 2 - 3.5, RAIL_Y1],
+    [-CARRIAGE_W / 2 + 3.5, RAIL_Y2],
+    [CARRIAGE_W / 2 - 3.5, RAIL_Y2]
+  ];
+  for (const [bx, by] of bushings) {
+    out.push(S(k.cylinder(bx, by, 3.2, CARRIAGE_Z, 6, P, 16), { tone: "lo" }));
+    out.push(D([at([bx, by, CARRIAGE_Z + 6])], { size: 0.4, tone: "mid" }));
+  }
 
-  // Lock thumb screw on top
-  out.push(S(k.cylinder(0, 0, 7, 13, 6, P, 24), { tone: "hi" }));
-  out.push(L(k.ring(0, 0, 7, 19, P, 24), { tone: "lit" }));
-  out.push(D([at([0, 0, 19.2])], { size: 0.9 }));
+  // Knurled thumbscrew lock on top
+  out.push(S(k.cylinder(0, 0, 5, CARRIAGE_TOP, 5, P, 24), { tone: "hi" }));
+  out.push(L(k.knurl(0, 0, 5, CARRIAGE_TOP + 1, CARRIAGE_TOP + 5, 24, P), { tone: "lo" }));
+  out.push(D([at([0, 0, CARRIAGE_TOP + 5])], { size: 0.6, tone: "lit" }));
 
-  // Pointer triangle
-  const tip0 = at([0, CARRIAGE_D / 2 + 2, 4]);
-  const tip1 = at([-3, CARRIAGE_D / 2 - 2, 4]);
-  const tip2 = at([3, CARRIAGE_D / 2 - 2, 4]);
-  out.push(`<polygon points="${tip0[0]},${tip0[1]} ${tip1[0]},${tip1[1]} ${tip2[0]},${tip2[1]}" fill="#34d399" />`);
+  // Vernier pointer triangle pointing to detent stop
+  const pTip = at([0, CARRIAGE_D / 2 + 1.5, CARRIAGE_Z]);
+  const pLeft = at([-2.5, CARRIAGE_D / 2 - 2, CARRIAGE_Z]);
+  const pRight = at([2.5, CARRIAGE_D / 2 - 2, CARRIAGE_Z]);
+  out.push(`<polygon points="${pTip[0]},${pTip[1]} ${pLeft[0]},${pLeft[1]} ${pRight[0]},${pRight[1]}" fill="#34d399" />`);
 
   return `<g data-part="carriage" class="iso-draggable" style="cursor: grab;">${out.join("")}</g>`;
-}
-
-function buildLatencyDial() {
-  const out = [];
-  // Rear mounting vertical stanchion post
-  out.push(S(k.cylinder(POST[0], POST[1], 5, 0, POST_TOP, P, 24), { tone: "mid" }));
-  out.push(L(k.ring(POST[0], POST[1], 5, POST_TOP, P, 24), { tone: "hi" }));
-
-  // Clamp collar arm holding the dial housing
-  const arm = { x: DIAL[0] - 6, y: POST[1] - 3, w: 12, d: DIAL[1] - POST[1] + 6, r: 2 };
-  out.push(S(k.slabOf(arm, DIAL_Z - 3, 6, P, 2, 0.4), { tone: "hi" }));
-  out.push(D([at([POST[0], POST[1], DIAL_Z + 3])], { size: 0.8 }));
-
-  // Outer circular dial housing
-  out.push(S(k.cylinder(DIAL[0], DIAL[1], DIAL_R, DIAL_Z, DIAL_H, P, 36), { tone: "mid" }));
-  out.push(L(k.ring(DIAL[0], DIAL[1], DIAL_R, DIAL_TOP, P, 36), { tone: "lit" }));
-
-  // Recessed dial face
-  out.push(S(k.cylinder(DIAL[0], DIAL[1], DIAL_R - 2.5, DIAL_TOP - 1, 1, P, 36), { tone: "lo" }));
-  out.push(L(k.ring(DIAL[0], DIAL[1], DIAL_R - 2.5, DIAL_TOP, P, 36), { tone: "mid" }));
-
-  // Circular tick marks around dial face (0 to 100 ms)
-  const dialTicks = k.radialTicks(DIAL[0], DIAL[1], DIAL_R - 4, 30, 5, DIAL_TOP, [1.5, 3.5], P, -Math.PI * 0.75, Math.PI * 1.5);
-  out.push(L(dialTicks.minor, { tone: "mid" }));
-  out.push(L(dialTicks.major, { tone: "hi" }));
-
-  // Face text: LATENCY (MS)
-  const faceTitle = at([DIAL[0], DIAL[1] - 8, DIAL_TOP]);
-  out.push(`<text x="${faceTitle[0].toFixed(1)}" y="${faceTitle[1].toFixed(1)}" class="iso-face-text" data-tone="hi" font-size="6" font-weight="bold" text-anchor="middle">LATENCY</text>`);
-  const faceSub = at([DIAL[0], DIAL[1] + 10, DIAL_TOP]);
-  out.push(`<text x="${faceSub[0].toFixed(1)}" y="${faceSub[1].toFixed(1)}" class="iso-face-text" data-tone="mid" font-size="5" text-anchor="middle">0 - 100 MS</text>`);
-
-  // Lower plunger stem extending downwards
-  out.push(S(k.cylinder(DIAL[0], DIAL[1] + DIAL_R - 3, 2.5, 0, DIAL_Z, P, 16), { tone: "hi" }));
-
-  return out.join("");
-}
-
-function buildDialNeedle(ms = 24) {
-  // Needle pointing to current ping (0 to 100 ms maps to -135deg to +135deg)
-  const angleDeg = -135 + (Math.min(100, Math.max(0, ms)) / 100) * 270;
-  const rad = (angleDeg * Math.PI) / 180;
-  const pCenter = at([DIAL[0], DIAL[1], DIAL_TOP + 0.5]);
-  const pTip = at([
-    DIAL[0] + (DIAL_R - 6) * Math.sin(rad),
-    DIAL[1] - (DIAL_R - 6) * Math.cos(rad),
-    DIAL_TOP + 0.5
-  ]);
-  const pTail = at([
-    DIAL[0] - 5 * Math.sin(rad),
-    DIAL[1] + 5 * Math.cos(rad),
-    DIAL_TOP + 0.5
-  ]);
-
-  const out = [
-    `<line x1="${pTail[0].toFixed(1)}" y1="${pTail[1].toFixed(1)}" x2="${pTip[0].toFixed(1)}" y2="${pTip[1].toFixed(1)}" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" />`,
-    `<circle cx="${pCenter[0].toFixed(1)}" cy="${pCenter[1].toFixed(1)}" r="2.8" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />`
-  ];
-  return `<g data-part="dial-needle">${out.join("")}</g>`;
 }
 
 const STANDALONE_SVG_STYLE = `
@@ -366,19 +373,21 @@ const STANDALONE_SVG_STYLE = `
   .iso-face-text{fill:var(--anatomy-mid);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.04em}
   .iso-face-text[data-tone="hi"]{fill:var(--anatomy-hi)}
   .iso-face-text[data-tone="lo"]{fill:var(--anatomy-lo)}
+  @keyframes iso-flow{to{stroke-dashoffset:-32}}
+  .iso-line[data-flow]{animation:iso-flow 1600ms linear infinite}
 `;
 
 export function generateFigureSvg({ standalone = false } = {}) {
   const parts = [
     buildPlate(),
     buildPowerUnit(),
-    buildPowerLever(false),
+    buildPowerLever(true),
     buildProtocolSelector(),
     buildKnobPointer(-135),
-    buildSplitRails(),
-    `<g data-part="carriage-group" transform="${k.translateAlong(P, [STOPS[1], (RAIL_Y1 + RAIL_Y2) / 2, 0])}">${buildCarriage()}</g>`,
     buildLatencyDial(),
-    buildDialNeedle(24)
+    buildDialNeedle(22),
+    buildSplitRails(),
+    `<g data-part="carriage-group" transform="${k.translateAlong(P, [STOPS[1], 0, 0])}">${buildCarriage()}</g>`
   ];
 
   return `<svg class="iso-svg" viewBox="0 0 ${WIDTH} ${HEIGHT}" width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cloakwire Cryptographic Bench Instrument">
@@ -411,29 +420,30 @@ export const CLIENT_SCRIPT = `
   const carriageGroup = svg.querySelector('[data-part="carriage-group"]');
   const needleGroup = svg.querySelector('[data-part="dial-needle"]');
   const led = svg.querySelector('.iso-led-glow');
+  const conduitFlow = svg.querySelector('.iso-conduit-flow');
   const readout = root.querySelector('[data-readout]');
 
   // Projection constants
   const P = ${JSON.stringify(P)};
   const STOPS = ${JSON.stringify(STOPS)};
-  const RAIL_Y = ${(RAIL_Y1 + RAIL_Y2) / 2};
-  const DIAL_CENTER = [${DIAL[0]}, ${DIAL[1]}];
-  const DIAL_R = ${DIAL_R};
-  const DIAL_TOP = ${DIAL_TOP};
+  const PWR_X = ${PWR_X};
+  const PWR_Y = ${PWR_Y};
   const KNOB_X = ${KNOB_X};
   const KNOB_Y = ${KNOB_Y};
   const KNOB_R = ${KNOB_R};
-  const PWR_X = ${PWR_X};
-  const PWR_Y = ${PWR_Y};
+  const DIAL_X = ${DIAL_X};
+  const DIAL_Y = ${DIAL_Y};
+  const DIAL_R = ${DIAL_R};
+  const DIAL_TOP = ${DIAL_TOP};
 
   const PROTOCOLS = [
-    { name: "VLESS Reality", cipher: "XTLS-Vision · ChaCha20", ping: 22, angle: -135 },
-    { name: "Hysteria 2", cipher: "Salamander · BBR Congestion", ping: 31, angle: -45 },
-    { name: "TUIC v5", cipher: "QUIC 0-RTT · BBR", ping: 28, angle: 45 },
-    { name: "WireGuard", cipher: "Noise_IK · Poly1305", ping: 19, angle: 135 }
+    { name: "VLESS", ping: 22, angle: -135 },
+    { name: "HY2", ping: 31, angle: -45 },
+    { name: "TUIC", ping: 27, angle: 45 },
+    { name: "WG", ping: 18, angle: 135 }
   ];
 
-  const MODES = ["DIRECT BYPASS", "SPLIT ROUTING", "GLOBAL TUNNEL"];
+  const MODES = ["DIRECT", "SPLIT", "GLOBAL"];
 
   // State
   let powerOn = true;
@@ -464,28 +474,35 @@ export const CLIENT_SCRIPT = `
     if (powerOn) {
       readout.textContent = proto.name + " · " + mode + " · " + Math.round(currentPing) + " ms · " + throughputMB.toFixed(1) + " MB/s";
     } else {
-      readout.textContent = "TUNNEL INACTIVE · STANDBY";
+      readout.textContent = "TUNNEL DISENGAGED · STANDBY";
     }
   }
 
   function updatePowerVisual() {
     if (!lever) return;
-    const angle = powerOn ? 25 : -25;
+    const angle = powerOn ? 18 : -32;
     const rad = (angle * Math.PI) / 180;
-    const len = 28;
-    const zBase = 12;
-    const xEnd = PWR_X + len * Math.sin(rad) * 0.4;
-    const yEnd = PWR_Y - 5 + len * Math.sin(rad);
-    const zEnd = zBase + len * Math.cos(rad);
+    const len = 22;
+    const zPivot = 12.5;
+    const xEnd = PWR_X;
+    const yEnd = PWR_Y - 9 + len * Math.sin(rad);
+    const zEnd = zPivot + len * Math.cos(rad);
 
-    const p0 = iso([PWR_X, PWR_Y - 5, zBase]);
+    const p0 = iso([PWR_X, PWR_Y - 9, zPivot]);
     const p1 = iso([xEnd, yEnd, zEnd]);
-    lever.innerHTML = '<line x1="' + p0[0].toFixed(1) + '" y1="' + p0[1].toFixed(1) + '" x2="' + p1[0].toFixed(1) + '" y2="' + p1[1].toFixed(1) + '" stroke="var(--anatomy-hi)" stroke-width="3" stroke-linecap="round" />' +
-      '<circle cx="' + p1[0].toFixed(1) + '" cy="' + p1[1].toFixed(1) + '" r="4.5" fill="var(--anatomy-strong)" stroke="var(--anatomy-lit)" stroke-width="1.2" />';
+    const pHandleMid = iso([xEnd, yEnd * 0.7 + (PWR_Y - 9) * 0.3, zEnd * 0.7 + zPivot * 0.3]);
+
+    lever.innerHTML = '<line x1="' + p0[0].toFixed(1) + '" y1="' + p0[1].toFixed(1) + '" x2="' + p1[0].toFixed(1) + '" y2="' + p1[1].toFixed(1) + '" stroke="var(--anatomy-hi)" stroke-width="2.8" stroke-linecap="round" />' +
+      '<circle cx="' + pHandleMid[0].toFixed(1) + '" cy="' + pHandleMid[1].toFixed(1) + '" r="2.5" fill="var(--anatomy-lo)" stroke="var(--anatomy-mid)" stroke-width="0.6" />' +
+      '<circle cx="' + p1[0].toFixed(1) + '" cy="' + p1[1].toFixed(1) + '" r="4.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />';
 
     if (led) {
-      led.setAttribute("fill", powerOn ? "#34d399" : "#4b5563");
+      led.setAttribute("fill", powerOn ? "#34d399" : "#374151");
       led.style.filter = powerOn ? "drop-shadow(0 0 6px #10b981)" : "none";
+    }
+
+    if (conduitFlow) {
+      conduitFlow.style.opacity = powerOn ? "0.85" : "0.15";
     }
   }
 
@@ -493,30 +510,23 @@ export const CLIENT_SCRIPT = `
     if (!pointer) return;
     const proto = PROTOCOLS[protoIdx];
     const rad = (proto.angle * Math.PI) / 180;
-    const pCenter = iso([KNOB_X, KNOB_Y, 16.2]);
-    const pEdge = iso([KNOB_X + (KNOB_R - 5) * Math.cos(rad), KNOB_Y + (KNOB_R - 5) * Math.sin(rad), 16.2]);
+    const pCenter = iso([KNOB_X, KNOB_Y, 14.7]);
+    const pEdge = iso([KNOB_X + (KNOB_R - 4) * Math.cos(rad), KNOB_Y + (KNOB_R - 4) * Math.sin(rad), 14.7]);
     pointer.innerHTML = '<line x1="' + pCenter[0].toFixed(1) + '" y1="' + pCenter[1].toFixed(1) + '" x2="' + pEdge[0].toFixed(1) + '" y2="' + pEdge[1].toFixed(1) + '" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" />' +
-      '<circle cx="' + pCenter[0].toFixed(1) + '" cy="' + pCenter[1].toFixed(1) + '" r="2" fill="var(--anatomy-lit)" />';
+      '<circle cx="' + pCenter[0].toFixed(1) + '" cy="' + pCenter[1].toFixed(1) + '" r="2.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />';
   }
 
   function updateNeedleVisual() {
     if (!needleGroup) return;
     const ms = powerOn ? currentPing : 0;
     const angleDeg = -135 + (Math.min(100, Math.max(0, ms)) / 100) * 270;
-    const rad = (angleDeg * Math.PI) / 180;
-    const pCenter = iso([DIAL_CENTER[0], DIAL_CENTER[1], DIAL_TOP + 0.5]);
-    const pTip = iso([
-      DIAL_CENTER[0] + (DIAL_R - 6) * Math.sin(rad),
-      DIAL_CENTER[1] - (DIAL_R - 6) * Math.cos(rad),
-      DIAL_TOP + 0.5
-    ]);
-    const pTail = iso([
-      DIAL_CENTER[0] - 5 * Math.sin(rad),
-      DIAL_CENTER[1] + 5 * Math.cos(rad),
-      DIAL_TOP + 0.5
-    ]);
-    needleGroup.innerHTML = '<line x1="' + pTail[0].toFixed(1) + '" y1="' + pTail[1].toFixed(1) + '" x2="' + pTip[0].toFixed(1) + '" y2="' + pTip[1].toFixed(1) + '" stroke="#34d399" stroke-width="1.8" stroke-linecap="round" />' +
-      '<circle cx="' + pCenter[0].toFixed(1) + '" cy="' + pCenter[1].toFixed(1) + '" r="2.8" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.8" />';
+    const angle = (angleDeg * Math.PI) / 180;
+    const pTail = iso([DIAL_X - Math.sin(angle) * 3.5, DIAL_Y + Math.cos(angle) * 3.5, DIAL_TOP + 0.3]);
+    const pTip = iso([DIAL_X + Math.sin(angle) * (DIAL_R - 4.5), DIAL_Y - Math.cos(angle) * (DIAL_R - 4.5), DIAL_TOP + 0.3]);
+    const pCenter = iso([DIAL_X, DIAL_Y, DIAL_TOP + 0.4]);
+
+    needleGroup.innerHTML = '<line x1="' + pTail[0].toFixed(1) + '" y1="' + pTail[1].toFixed(1) + '" x2="' + pTip[0].toFixed(1) + '" y2="' + pTip[1].toFixed(1) + '" stroke="#34d399" stroke-width="1.4" stroke-linecap="round" />' +
+      '<circle cx="' + pCenter[0].toFixed(1) + '" cy="' + pCenter[1].toFixed(1) + '" r="2.2" fill="var(--anatomy-lit)" stroke="var(--anatomy-strong)" stroke-width="0.6" />';
   }
 
   function updateCarriageVisual() {
@@ -524,8 +534,8 @@ export const CLIENT_SCRIPT = `
     const a = P.azimuth * (Math.PI / 180);
     const e = P.elevation * (Math.PI / 180);
     const k = P.scale * Math.sqrt(1.6);
-    const dx = (carriageX * Math.sin(a) - RAIL_Y * Math.cos(a)) * k;
-    const dy = ((carriageX * Math.cos(a) + RAIL_Y * Math.sin(a)) * Math.sin(e)) * k;
+    const dx = (carriageX * Math.sin(a)) * k;
+    const dy = (carriageX * Math.cos(a) * Math.sin(e)) * k;
     carriageGroup.setAttribute("transform", "translate(" + dx.toFixed(1) + ", " + dy.toFixed(1) + ")");
   }
 
@@ -541,13 +551,13 @@ export const CLIENT_SCRIPT = `
 
     // Ping jitter / hum
     if (powerOn) {
-      targetPing = PROTOCOLS[protoIdx].ping + (Math.sin(now / 400) * 2.5) + (Math.cos(now / 150) * 1.5);
-      throughputMB = 12.5 + Math.sin(now / 600) * 3.2;
+      targetPing = PROTOCOLS[protoIdx].ping + (Math.sin(now / 400) * 1.8) + (Math.cos(now / 150) * 0.9);
+      throughputMB = 12.8 + Math.sin(now / 550) * 2.6;
     } else {
       targetPing = 0;
       throughputMB = 0;
     }
-    currentPing += (targetPing - currentPing) * (1 - Math.exp(-dt / 0.1));
+    currentPing += (targetPing - currentPing) * (1 - Math.exp(-dt / 0.12));
 
     updateCarriageVisual();
     updateNeedleVisual();
@@ -596,7 +606,7 @@ export const CLIENT_SCRIPT = `
     }
     const rect = svg.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    const ratio = Math.max(0, Math.min(1, (clickX / rect.width - 0.45) / 0.35));
+    const ratio = Math.max(0, Math.min(1, (clickX / rect.width - 0.55) / 0.3));
     targetCarriageX = STOPS[0] + ratio * (STOPS[2] - STOPS[0]);
     let best = 0;
     let bestDist = Infinity;
@@ -623,21 +633,21 @@ export const CLIENT_SCRIPT = `
 export function buildStandAloneHtml() {
   const svg = generateFigureSvg({ standalone: false });
   const body = k.plateHtml({
-    fig: "Fig 1",
-    title: "Cloakwire Cryptographic Unit",
-    hint: "Click switch to toggle tunnel · Click knob to change protocol · Drag or click rails",
-    readout: "VLESS Reality · SPLIT ROUTING · 24 ms · 14.8 MB/s",
+    fig: "Fig 1.0",
+    title: "CRYPTOGRAPHIC BENCH",
+    hint: "Toggle switch · Rotate knob · Drag rail",
+    readout: "VLESS · SPLIT · 22 ms · 15 MB/s",
     keys: [
-      { mark: "green", label: "Active encrypted path / Live status indicator" },
-      { mark: "lit", label: "Controls: Power knife-switch, protocol knob, split-tunneling carriage" },
-      { mark: "mid", label: "Precision analog ping dial (0 - 100 ms)" }
+      { mark: "green", label: "Active encrypted path / Live status" },
+      { mark: "lit", label: "Controls: Knife-switch, selector dial, routing carriage" },
+      { mark: "mid", label: "Precision analog latency meter (0 - 100 ms)" }
     ],
     caption: "Cloakwire Dual-Core Hardware Gateway: interact with the mechanical switch, protocol rotary selector, and routing carriage to inspect tunnel status and latency in real time.",
     body: `<div class="iso-cloakwire-card"><div class="iso-stage" tabindex="0">${svg}</div></div>`
   });
 
   return k.pageHtml({
-    title: "Cloakwire Cryptographic Unit",
+    title: "Cloakwire Cryptographic Bench Unit",
     theme: "dark",
     body,
     script: CLIENT_SCRIPT
@@ -659,7 +669,7 @@ const svgStandalone = generateFigureSvg({ standalone: true });
 writeFileSync(join(docsDir, "screenshots", "cloakwire-cryptographic-unit.svg"), svgStandalone, "utf8");
 console.log("Successfully generated docs/screenshots/cloakwire-cryptographic-unit.svg");
 
-// 3. Update docs/index.html with interactive unit and bump version to v1.4.6
+// 3. Update docs/index.html with interactive unit
 export function patchLandingPage() {
   const indexPath = join(docsDir, "index.html");
   let content = readFileSync(indexPath, "utf8");
@@ -667,51 +677,93 @@ export function patchLandingPage() {
   // Bump version numbers
   content = content.replaceAll("1.4.2", "1.4.6");
 
-  // Inject ISO styles into <head> if not already present
-  if (!content.includes("/* ANATOMY_ISO_CSS */")) {
-    const customIsoCss = `
+  // Inject ISO styles into <head>
+  const customIsoCss = `
     /* ANATOMY_ISO_CSS */
     ${k.ISO_CSS}
     .iso-plate {
-      border-radius: 1rem;
-      border: 1px solid rgba(52, 211, 153, 0.2);
-      background: rgba(18, 19, 26, 0.7);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-      padding: 44px 20px 32px;
+      position: relative;
+      border-radius: 1.25rem;
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      background: radial-gradient(circle at 50% 0%, rgba(20, 24, 35, 0.85) 0%, rgba(10, 11, 16, 0.95) 100%);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+      padding: 44px 20px 36px;
+      overflow: hidden;
     }
     .iso-stage { outline: none; }
-    .iso-clickable, .iso-draggable { transition: filter 0.2s ease; }
-    .iso-clickable:hover { filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6)); }
-    `;
+    .iso-clickable, .iso-draggable { transition: filter 0.2s ease, opacity 0.2s ease; }
+    .iso-clickable:hover { filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.65)); }
+    .iso-draggable:hover { filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.5)); }
+    
+    @keyframes conduitPulse {
+      from { stroke-dashoffset: 24; }
+      to { stroke-dashoffset: 0; }
+    }
+    .iso-conduit-flow {
+      stroke-dasharray: 6 6;
+      animation: conduitPulse 1.2s linear infinite;
+    }
+    
+    .iso-plate-corner {
+      white-space: nowrap;
+      user-select: none;
+    }
+    @media (max-width: 640px) {
+      .iso-plate {
+        padding: 36px 12px 28px;
+      }
+      .iso-plate-corner[data-corner="title"] {
+        display: none !important;
+      }
+      .iso-plate-corner[data-corner="hint"] {
+        display: none !important;
+      }
+      .iso-plate-corner[data-corner="fig"] {
+        font-size: 11px;
+        top: 10px;
+        left: 14px;
+      }
+      .iso-plate-corner[data-corner="readout"] {
+        font-size: 11px;
+        right: 14px;
+        bottom: 10px;
+      }
+    }
+  `;
+
+  if (content.includes("/* ANATOMY_ISO_CSS */")) {
+    content = content.replace(/\/\* ANATOMY_ISO_CSS \*\/[\s\S]*?<\/style>/, `${customIsoCss}\n  </style>`);
+  } else {
     content = content.replace("</style>", `${customIsoCss}\n  </style>`);
   }
 
   // Ensure body has class "iso" and data-theme="dark"
-  if (!content.includes('class="iso"')) {
+  if (!content.includes('class="iso')) {
     content = content.replace('<body class="', '<body class="iso ');
-    content = content.replace('<body class="iso ', '<body data-theme="dark" class="iso ');
+  }
+  if (!content.includes('data-theme="dark"')) {
+    content = content.replace('<body ', '<body data-theme="dark" ');
   }
 
-  // Inject interactive section after hero showcase preview
+  // Replace or inject interactive section
   const figureSectionMarker = "<!-- Interactive Anatomy Architectural Unit Section -->";
-  if (!content.includes(figureSectionMarker)) {
-    const svgForLanding = generateFigureSvg({ standalone: false });
-    const plateHtml = k.plateHtml({
-      fig: "Fig 1.0",
-      title: "Cloakwire Dual-Core Cryptographic Gateway",
-      hint: "Click knife-switch to toggle tunnel · Click knob to select protocol · Click rails to shift mode",
-      readout: "VLESS Reality · SPLIT ROUTING · 24 ms · 14.8 MB/s",
-      keys: [
-        { mark: "green", label: "Active encrypted path / Live status indicator" },
-        { mark: "lit", label: "Controls: Knife-switch, rotary dial, split-tunneling carriage" },
-        { mark: "mid", label: "Precision analog ping dial (0 - 100 ms)" }
-      ],
-      caption: "Interactive Architectural Model: test tunnel toggling, protocol switching, and mode routing on the dual-core hardware gateway simulation.",
-      body: `<div class="iso-cloakwire-card"><div class="iso-stage" tabindex="0">${svgForLanding}</div></div>`
-    });
+  const svgForLanding = generateFigureSvg({ standalone: false });
+  const plateHtml = k.plateHtml({
+    fig: "Fig 1.0",
+    title: "CRYPTOGRAPHIC BENCH",
+    hint: "Toggle switch · Rotate knob · Drag rail",
+    readout: "VLESS · SPLIT · 22 ms · 15 MB/s",
+    keys: [
+      { mark: "green", label: "Active encrypted path / Live status indicator" },
+      { mark: "lit", label: "Controls: Knife-switch, selector dial, routing carriage" },
+      { mark: "mid", label: "Precision analog latency meter (0 - 100 ms)" }
+    ],
+    caption: "Interactive Architectural Model: test tunnel toggling, protocol switching, and mode routing on the dual-core hardware gateway simulation.",
+    body: `<div class="iso-cloakwire-card"><div class="iso-stage" tabindex="0">${svgForLanding}</div></div>`
+  });
 
-    const sectionHtml = `
+  const sectionHtml = `
     ${figureSectionMarker}
     <section id="model" class="max-w-5xl mx-auto px-6 py-16 text-center border-t border-white/5">
       <div class="text-center max-w-2xl mx-auto mb-8">
@@ -729,25 +781,32 @@ export function patchLandingPage() {
         ${plateHtml}
       </div>
     </section>
-    `;
+  `;
 
+  if (content.includes(figureSectionMarker)) {
+    // Replace existing section
+    content = content.replace(/<!-- Interactive Anatomy Architectural Unit Section -->[\s\S]*?<\/section>/, sectionHtml.trim());
+  } else {
     const heroShowcaseEnd = '</div>\n    </section>';
     content = content.replace(heroShowcaseEnd, `</div>\n    </section>\n${sectionHtml}`);
   }
 
-  // Inject client script before </body>
+  // Update client script
   const scriptMarker = "<!-- ANATOMY_CLIENT_SCRIPT -->";
-  if (!content.includes(scriptMarker)) {
-    const scriptBlock = `
+  const scriptBlock = `
   ${scriptMarker}
   <script type="module">
   ${CLIENT_SCRIPT}
   </script>
-    `;
+  `;
+
+  if (content.includes(scriptMarker)) {
+    content = content.replace(/<!-- ANATOMY_CLIENT_SCRIPT -->[\s\S]*?<\/script>/, scriptBlock.trim());
+  } else {
     content = content.replace("</body>", `${scriptBlock}\n</body>`);
   }
 
-  // Also add nav link to #model in header
+  // Add nav link to #model in header if not present
   if (!content.includes('href="#model"')) {
     content = content.replace(
       '<a href="#features" class="hover:text-white transition-colors">Features</a>',
@@ -756,7 +815,7 @@ export function patchLandingPage() {
   }
 
   writeFileSync(indexPath, content, "utf8");
-  console.log("Successfully patched docs/index.html to v1.4.6 with interactive figure!");
+  console.log("Successfully patched docs/index.html with refined Anatomy figure!");
 }
 
 patchLandingPage();
