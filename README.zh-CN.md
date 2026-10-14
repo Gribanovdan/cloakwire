@@ -51,15 +51,6 @@ Windows · macOS · Android · Rust/Tauri & React · VLESS Reality · Hysteria 2
 ## 🌟 核心特性
 
 ### 🧩 双内核驱动：sing-box + Xray
-
-Cloakwire 采用模块化双核心运行时架构，兼顾极致性能与高度兼容性：
-
-<div align="center">
-  <img src="docs/screenshots/cloakwire-cryptographic-unit.svg" alt="Cloakwire 密码学硬件架构模型" width="100%" />
-  <p><em>Cloakwire 双引擎路由、旋钮协议切换、分流轨道滑块与模拟延迟仪表盘等距分解图。</em></p>
-  <p><a href="https://markwhite7881-cpu.github.io/cloakwire/#model">👉 <b>在 GitHub Pages 体验可交互 3D 架构模型</b></a></p>
-</div>
-
 - **sing-box (默认核心)**：内存占用极低（空闲仅约 35 MB），数据包转发效率高，支持系统级 TUN 虚拟网卡与按应用分流。
 - **Xray Core (智能回退)**：当导入需要 Xray 特性扩展的节点配置时自动激活，无需手动干预。
 

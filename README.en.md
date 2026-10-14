@@ -51,15 +51,6 @@ Windows · macOS · Android · Rust/Tauri & React · VLESS Reality · Hysteria 2
 ## 🌟 Key Features
 
 ### 🧩 Dual-Engine Architecture
-
-Cloakwire operates a modular dual-core pipeline ensuring seamless protocol support, active latency monitoring, and zero manual fallback:
-
-<div align="center">
-  <img src="docs/screenshots/cloakwire-cryptographic-unit.svg" alt="Cloakwire Dual-Core Cryptographic Architecture Unit" width="100%" />
-  <p><em>Isometric breakdown of Cloakwire's dual-engine gateway: power knife-switch, protocol rotary selector, split-tunneling carriage, and analog latency meter.</em></p>
-  <p><a href="https://markwhite7881-cpu.github.io/cloakwire/#model">👉 <b>Experience the Live Interactive 3D Model on GitHub Pages</b></a></p>
-</div>
-
 - **sing-box (Default)**: Low memory footprint (~35 MB idle), fast packet processing, system TUN routing, and direct per-app filtering.
 - **Xray Core (Automatic Fallback)**: Automatically activates when loading profiles requiring Xray-specific dialers or routing rules without manual toggling.
 
