@@ -1,4 +1,5 @@
-import { FileJson, FolderOpen, Server } from "lucide-react";
+import { useState } from "react";
+import { Bell, FileJson, FolderOpen, Server } from "lucide-react";
 import { Button } from "@/components/Button";
 import {
   Card,
@@ -16,6 +17,11 @@ import { LanguagePicker } from "@/components/LanguagePicker";
 import { basename } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import {
+  areNotificationsEnabled,
+  requestNotificationPermission,
+  setNotificationsEnabled,
+} from "@/lib/notifications";
 import type {
   BinaryInfo,
   GeneratorSettings,
@@ -61,6 +67,17 @@ export function ConfigTab({
   onSingboxUpdated,
 }: ConfigTabProps) {
   const { t } = useI18n();
+  const [notificationsEnabled, setNotificationsEnabledState] = useState<boolean>(() =>
+    areNotificationsEnabled(),
+  );
+
+  const handleToggleNotifications = async (val: boolean) => {
+    setNotificationsEnabled(val);
+    setNotificationsEnabledState(val);
+    if (val) {
+      await requestNotificationPermission();
+    }
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-6">
@@ -125,6 +142,46 @@ export function ConfigTab({
       <Card className="bento-card">
         <CardContent className="pt-6">
           <AccentThemePicker />
+        </CardContent>
+      </Card>
+
+      {/* Native Desktop Notifications */}
+      <Card className="bento-card">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-theme-accent" />
+                <span className="text-xs font-medium text-foreground">
+                  {t("notify.notificationsTitle")}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {t("notify.notificationsDesc")}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={notificationsEnabled}
+              onClick={() => void handleToggleNotifications(!notificationsEnabled)}
+              className={cn(
+                "relative h-5 w-10 shrink-0 rounded-full border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-theme-accent",
+                notificationsEnabled
+                  ? "border-theme-accent/50 bg-theme-accent/20"
+                  : "border-border bg-foreground/5",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 h-4 w-4 rounded-full transition-all duration-200",
+                  notificationsEnabled
+                    ? "left-[22px] bg-theme-accent shadow-sm"
+                    : "left-0.5 bg-muted-foreground",
+                )}
+              />
+            </button>
+          </div>
         </CardContent>
       </Card>
 

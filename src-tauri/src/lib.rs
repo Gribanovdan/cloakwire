@@ -140,7 +140,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init());
-    // Desktop-only plugins: autostart. On Android the core runs inside the Kotlin
+    // Desktop-only plugins: autostart & notifications. On Android the core runs inside the Kotlin
     // VpnService (libbox) and these plugins aren't even compiled in.
     #[cfg(not(target_os = "android"))]
     let builder = builder
@@ -149,7 +149,8 @@ pub fn run() {
             // Forward the `--minimized` flag (no-op on Windows)
             // so the user can opt into starting in the background.
             Some(vec!["--minimized"]),
-        ));
+        ))
+        .plugin(tauri_plugin_notification::init());
     #[cfg(target_os = "android")]
     let builder = builder.plugin(vpn_mobile_plugin());
     #[cfg(not(target_os = "android"))]

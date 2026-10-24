@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Gauge,
   Home,
   Link2,
   Power,
@@ -17,6 +18,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { TabBar, Tabs, type TabDef } from "@/components/Tabs";
 import { HomeTab } from "@/components/HomeTab";
 import { ServersTab } from "@/components/ServersTab";
+import { SpeedTestTab } from "@/components/SpeedTestTab";
 import { LogsTab } from "@/components/LogsTab";
 import { ConfigTab } from "@/components/ConfigTab";
 import { RoutingTab } from "@/components/routing/RoutingTab";
@@ -25,6 +27,7 @@ import { useI18n } from "@/lib/i18n";
 import { TauriCommandError, api } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { loadManualProfiles, saveManualProfiles } from "@/lib/manualProfiles";
+import { notify } from "@/lib/notifications";
 import {
   buildConnectionProfiles,
   canStartManagedSelection,
@@ -67,7 +70,7 @@ import type {
 // back to mock data so the UI is still demoable.
 const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
-const TAB_KEYS = ["home", "servers", "config", "routing", "logs"] as const;
+const TAB_KEYS = ["home", "servers", "speedtest", "config", "routing", "logs"] as const;
 type TabId = (typeof TAB_KEYS)[number];
 const DEFAULT_TAB: TabId = "home";
 
@@ -862,6 +865,35 @@ export default function App() {
     void api.updateTrayStatus(isConnected, activeName).catch(() => {});
   }, [inTauri, status.status, status.profile_name, selectedIndex, profiles]);
 
+  // Desktop notifications on connection status changes
+  const prevStatusRef = useRef<Status>(status.status);
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    if (prev !== status.status) {
+      if (prev !== "running" && status.status === "running") {
+        const selected = selectedIndex >= 0 ? profiles[selectedIndex] : null;
+        const activeName =
+          status.profile_name ||
+          (selected
+            ? selected.kind === "manual"
+              ? profileLabel(selected.outbound)
+              : selected.kind === "subscription"
+                ? selected.label
+                : selected.name
+            : null);
+        void notify(
+          t("notify.titleConnected"),
+          `${t("notify.bodyConnected")} ${activeName || ""}`.trim(),
+        );
+      } else if (prev === "running" && status.status === "stopped") {
+        void notify(t("notify.titleDisconnected"), t("notify.bodyDisconnected"));
+      } else if (prev === "running" && status.status === "crashed") {
+        void notify(t("notify.titleCrashed"), t("notify.bodyCrashed"));
+      }
+      prevStatusRef.current = status.status;
+    }
+  }, [status.status, status.profile_name, selectedIndex, profiles, t]);
+
   // Listen for tray connect/disconnect toggle event
   useEffect(() => {
     if (!inTauri) return;
@@ -1104,6 +1136,28 @@ export default function App() {
             onRefreshAllSubs={subs.refreshAll}
             onSetSubInterval={subs.setIntervalFor}
             onSelectSubChild={subs.selectChild}
+          />
+        ),
+      },
+      {
+        id: "speedtest",
+        label: t("nav.speedtest"),
+        icon: Gauge,
+        content: (
+          <SpeedTestTab
+            vpnActive={status.status === "running"}
+            activeProfileName={
+              status.status === "running"
+                ? status.profile_name ||
+                  (selectedIndex >= 0 && profiles[selectedIndex]
+                    ? profiles[selectedIndex].kind === "manual"
+                      ? profileLabel(profiles[selectedIndex].outbound)
+                      : profiles[selectedIndex].kind === "subscription"
+                        ? profiles[selectedIndex].label
+                        : profiles[selectedIndex].name
+                    : null)
+                : null
+            }
           />
         ),
       },
