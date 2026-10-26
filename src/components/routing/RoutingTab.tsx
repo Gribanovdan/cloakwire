@@ -65,6 +65,9 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
   // This is purely informational — the *real* generation is in Rust.
   const jsonPreview = useMemo(() => buildJsonPreview(r), [r]);
 
+  const appendRule = (rule: CustomRule) =>
+    updateRouting({ rules: [...r.rules, rule] });
+
   const onAddRule = () => {
     const rule: CustomRule = {
       id: newRuleId(),
@@ -73,7 +76,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
       matchers: {},
       action: { kind: "route", outbound: "proxy" },
     };
-    updateRouting({ rules: [...r.rules, rule] });
+    appendRule(rule);
   };
 
   const onAddRuleSet = (rs: CustomRuleSet) => {
@@ -305,7 +308,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
             className={cn(!isTunActive && "pointer-events-none opacity-60")}
             aria-disabled={!isTunActive}
           >
-            <PresetPicker onAddRule={onAddRule} onAddRuleSet={onAddRuleSet} />
+            <PresetPicker onAddRule={appendRule} onAddRuleSet={onAddRuleSet} />
           </div>
 
           {/* JSON preview stays interactive */}

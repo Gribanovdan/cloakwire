@@ -488,7 +488,7 @@ pub(crate) fn build_route(settings: &GeneratorSettings) -> Value {
         .rule_sets
         .iter()
         .filter(|rs| is_rule_set_enabled(rs))
-        .cloned()
+        .map(strip_empty_fields)
         .collect();
 
     let mut m = Map::new();
@@ -1386,6 +1386,50 @@ mod tests {
         assert!(cn["url"].as_str().unwrap().ends_with("geosite-cn.srs"));
         let cn_ip = rss.iter().find(|r| r["tag"] == "geoip-cn").unwrap();
         assert!(cn_ip["url"].as_str().unwrap().ends_with("geoip-cn.srs"));
+    }
+
+    #[test]
+    fn desktop_picker_ruleset_omits_ui_metadata() {
+        // Captured RoutingTab -> api.startManaged settings, including the
+        // enabled flag that the old hand-written native-shaped fixtures missed.
+        let settings: GeneratorSettings =
+            serde_json::from_str(include_str!("fixtures/bypass-ru-settings.json")).unwrap();
+        let cfg = Config::build(&fixture_outbounds(), &settings);
+        let sets = rule_sets(&cfg);
+        assert_eq!(sets.len(), 1);
+        assert!(sets[0].get("enabled").is_none(), "{:#?}", sets[0]);
+        assert_eq!(sets[0]["tag"], "geoip-ru");
+        assert!(settings.routing.rule_sets[0]["enabled"].as_bool().unwrap());
+        assert!(rules(&cfg).iter().any(|rule| {
+            rule["rule_set"] == json!(["geoip-ru"])
+                && rule["action"] == "route"
+                && rule["outbound"] == "direct"
+        }));
+    }
+
+    #[test]
+    fn ruleset_cleanup_preserves_runtime_fields_and_enabled_defaults() {
+        let settings = GeneratorSettings {
+            routing: RoutingOptions {
+                rule_sets: vec![
+                    json!({"tag": "remote", "type": "remote", "format": "binary", "url": "https://example.test/ru.srs", "update_interval": "1d", "enabled": true, "label": "RU", "id": "ui-id"}),
+                    json!({"tag": "local", "type": "local", "format": "source", "path": "rules.json"}),
+                    json!({"tag": "inline", "type": "inline", "enabled": null, "rules": [{"domain_suffix": ["example.test"], "invert": false, "domain": [], "enabled": true}]}),
+                    json!({"tag": "disabled", "type": "inline", "enabled": false, "rules": [{"domain": ["disabled.test"]}]}),
+                ],
+                ..RoutingOptions::default()
+            },
+            ..GeneratorSettings::default()
+        };
+        let cfg = Config::build(&fixture_outbounds(), &settings);
+        assert_eq!(
+            cfg["route"]["rule_set"],
+            json!([
+                {"tag": "remote", "type": "remote", "format": "binary", "url": "https://example.test/ru.srs", "update_interval": "1d"},
+                {"tag": "local", "type": "local", "format": "source", "path": "rules.json"},
+                {"tag": "inline", "type": "inline", "rules": [{"domain_suffix": ["example.test"], "invert": false}]}
+            ])
+        );
     }
 
     #[test]

@@ -26,6 +26,7 @@ import { UpdateModal } from "@/components/UpdateModal";
 import { useI18n } from "@/lib/i18n";
 import { TauriCommandError, api } from "@/lib/api";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
+import { GEOIP_RU_URL, migrateRuleSetPresets } from "@/lib/presets";
 import { loadManualProfiles, saveManualProfiles } from "@/lib/manualProfiles";
 import { notify } from "@/lib/notifications";
 import {
@@ -180,7 +181,7 @@ function migrateRoutingV1ToV2(v1: RoutingOptionsV1): RoutingOptions {
         tag: "geoip-ru",
         type: "remote",
         format: "binary",
-        url: "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip-ru.srs",
+        url: GEOIP_RU_URL,
         update_interval: "1d",
         enabled: true,
       });
@@ -251,6 +252,7 @@ function loadSettings(): GeneratorSettings {
         routing: { ...DEFAULT_SETTINGS.routing, ...(parsed.routing ?? {}) },
         clash_api: { ...DEFAULT_SETTINGS.clash_api, ...(parsed.clash_api ?? {}) },
       };
+      merged.routing.rule_sets = migrateRuleSetPresets(merged.routing.rule_sets);
       if (
         merged.remote_dns === "https://8.8.8.8/dns-query" ||
         merged.remote_dns === "https://dns.google/dns-query"

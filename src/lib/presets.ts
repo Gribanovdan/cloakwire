@@ -10,6 +10,22 @@
 
 import type { CustomRule, CustomRuleSet } from "./types";
 
+export const GEOIP_RU_URL =
+  "https://raw.githubusercontent.com/Loyalsoldier/geoip/release/srs/ru.srs";
+const LEGACY_GEOIP_RU_URL =
+  "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip-ru.srs";
+
+/** Repair the obsolete built-in URL in saved settings, preserving custom sources. */
+export function migrateRuleSetPresets(
+  ruleSets: CustomRuleSet[] | null | undefined,
+): CustomRuleSet[] {
+  return (ruleSets ?? []).map((rs) =>
+    rs.type === "remote" && rs.url === LEGACY_GEOIP_RU_URL
+      ? { ...rs, url: GEOIP_RU_URL }
+      : rs,
+  );
+}
+
 /** Where a preset comes from. Used to group in the picker. */
 export type PresetSource = "loyalsoldier" | "meta";
 
@@ -44,7 +60,7 @@ export const RULE_SET_PRESETS: RuleSetPreset[] = [
     description: "All Russian IP ranges. Used to bypass routing to Russia.",
     source: "loyalsoldier",
     category: "geoip",
-    url: "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geoip-ru.srs",
+    url: GEOIP_RU_URL,
   },
   {
     tag: "geosite-ads",

@@ -10,6 +10,7 @@
 // starts/stops sing-box manually), stored under its own key.
 
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
+import { migrateRuleSetPresets } from "@/lib/presets";
 import type { GeneratorSettings } from "@/lib/types";
 
 const SETTINGS_KEY = "singbox-client.settings.v2";
@@ -27,7 +28,11 @@ export function loadSettings(): GeneratorSettings {
       tunnel_mode: parsed.tunnel_mode === "system_proxy" ? "tun" : (parsed.tunnel_mode ?? "tun"),
       kill_switch: "off",
       block_ipv6: false,
-      routing: { ...DEFAULT_SETTINGS.routing, ...(parsed.routing ?? {}) },
+      routing: {
+        ...DEFAULT_SETTINGS.routing,
+        ...(parsed.routing ?? {}),
+        rule_sets: migrateRuleSetPresets(parsed.routing?.rule_sets),
+      },
       clash_api: { ...DEFAULT_SETTINGS.clash_api, ...(parsed.clash_api ?? {}) },
     };
   } catch {

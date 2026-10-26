@@ -1,0 +1,51 @@
+{
+  "tunnel_mode": "tun",
+  "kill_switch": "off",
+  "block_ipv6": false,
+  "routing": {
+    "rules": [
+      {
+        "id": "r-8gib9wwpmvpdd8fl",
+        "label": "Bypass RU",
+        "enabled": true,
+        "matchers": {
+          "rule_set": [
+            "geoip-ru"
+          ]
+        },
+        "action": {
+          "kind": "route",
+          "outbound": "direct"
+        }
+      }
+    ],
+    "rule_sets": [
+      {
+        "tag": "geoip-ru",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/Loyalsoldier/geoip/release/srs/ru.srs",
+        "update_interval": "1d",
+        "enabled": true
+      }
+    ],
+    "vpn_processes": [],
+    "direct_processes": [],
+    "sniff": true,
+    "final_outbound": "proxy",
+    "auto_detect_interface": true,
+    "default_domain_resolver": "local",
+    "tun_app_mode": "all",
+    "tun_app_list": []
+  },
+  "clash_api": {
+    "external_controller": "127.0.0.1:9090",
+    "default_controller": "proxy",
+    "secret": null
+  },
+  "tun_interface_name": null,
+  "mixed_port": 2080,
+  "local_dns": "1.1.1.1",
+  "remote_dns": "1.1.1.1",
+  "default_outbound": null
+}
