@@ -24,6 +24,8 @@ export interface VpnStatus {
 export interface AppEntry {
   label: string;
   packageName: string;
+  /** System app icon as a PNG data URL; absent when unavailable. */
+  icon?: string | null;
   system: boolean;
   hasInternet: boolean;
 }
