@@ -402,11 +402,15 @@ class CloakwireVpnService : VpnService() {
 
     tun.remove("include_package")
     tun.remove("exclude_package")
-    val packages = parseAppList(appsJson).filterNot { it == packageName }
-    if (packages.isNotEmpty()) {
-      val values = JSONArray().also { arr -> packages.forEach { arr.put(it) } }
-      if (appsMode == "include") tun.put("include_package", values)
-      else tun.put("exclude_package", values)
+    val policy = XrayAppRoutingPolicy.create(parseAppList(appsJson), appsMode, packageName)
+    if (policy.allowedPackages.isNotEmpty()) {
+      tun.put("include_package", JSONArray().also { arr ->
+        policy.allowedPackages.forEach { arr.put(it) }
+      })
+    } else {
+      tun.put("exclude_package", JSONArray().also { arr ->
+        policy.disallowedPackages.forEach { arr.put(it) }
+      })
     }
 
     // Ensure route has hijack-dns and private IP bypass, and clean up any legacy rules

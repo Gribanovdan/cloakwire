@@ -346,7 +346,10 @@ fn add_simple_process_unavailable(
 }
 
 fn supports_process_matcher() -> bool {
-    cfg!(target_os = "windows")
+    // Desktop Xray accepts local system-proxy connections, where the
+    // original application cannot be identified reliably. Per-app capture
+    // requires sing-box TUN (desktop) or Android VpnService package lists.
+    false
 }
 
 fn simple_processes(processes: &[String]) -> Vec<String> {
@@ -706,7 +709,7 @@ mod tests {
 
     #[cfg(target_os = "windows")]
     #[test]
-    fn translates_simple_process_lists_on_supported_platforms() {
+    fn reports_simple_process_lists_as_unavailable_in_system_proxy_mode() {
         let provider = json!({"outbounds":[{"tag":"proxy","protocol":"vless"}]});
         let mut routing = RoutingOptions::default();
         routing.vpn_processes = vec!["vpn.exe".into()];
@@ -714,23 +717,12 @@ mod tests {
 
         let prepared = merge_routing(provider, &routing).unwrap();
 
-        assert_eq!(
-            prepared.value["routing"]["rules"][0],
-            json!({"process":["bank.exe"],"outboundTag":"cloakwire-direct"})
-        );
-        assert_eq!(
-            prepared.value["routing"]["rules"][1],
-            json!({"process":["vpn.exe"],"outboundTag":"proxy"})
-        );
-        assert_eq!(
-            prepared.value["outbounds"][1],
-            json!({"tag":"cloakwire-direct","protocol":"freedom"})
-        );
-        assert_eq!(
-            prepared.applicability.applied_rule_ids,
-            vec!["simple-direct-processes", "simple-vpn-processes"]
-        );
-        assert!(prepared.applicability.unavailable.is_empty());
+        assert_eq!(prepared.value.get("routing"), None);
+        assert!(prepared.applicability.applied_rule_ids.is_empty());
+        assert_eq!(prepared.applicability.unavailable.len(), 2);
+        assert!(prepared.applicability.unavailable.iter().all(|rule| {
+            rule.reason == super::UnavailableReason::ProcessMatcher
+        }));
     }
 
     #[cfg(not(target_os = "windows"))]

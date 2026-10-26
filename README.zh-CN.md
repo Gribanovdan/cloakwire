@@ -27,16 +27,16 @@ Windows · macOS · Android · Rust/Tauri & React · VLESS Reality · Hysteria 2
 
 ---
 
-## ⚡ 安装包下载 (v1.4.6)
+## ⚡ 安装包下载 (v1.4.7)
 
 | 平台 | 推荐安装程序 | 备用压缩包 | 架构 |
 |---|---|---|---|
-| 🪟 **Windows** | [⬇️ **下载 .exe** (安装程序)](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64-setup.exe) | [⬇️ **下载 .msi**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64_en-US.msi) | x64 (Intel / AMD) |
-| 🍏 **macOS Apple Silicon** | [⬇️ **下载 .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_aarch64.dmg) | [⬇️ **下载 .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_aarch64.app.zip) | M1 / M2 / M3 / M4 |
-| 🍏 **macOS Intel** | [⬇️ **下载 .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64.dmg) | [⬇️ **下载 .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64.app.zip) | x86_64 |
-| 🤖 **Android** | [⬇️ **下载 .apk**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_arm64-v8a.apk) | — | arm64-v8a |
+| 🪟 **Windows** | [⬇️ **下载 .exe** (安装程序)](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64-setup.exe) | [⬇️ **下载 .msi**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64_en-US.msi) | x64 (Intel / AMD) |
+| 🍏 **macOS Apple Silicon** | [⬇️ **下载 .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_aarch64.dmg) | [⬇️ **下载 .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_aarch64.app.zip) | M1 / M2 / M3 / M4 |
+| 🍏 **macOS Intel** | [⬇️ **下载 .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64.dmg) | [⬇️ **下载 .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64.app.zip) | x86_64 |
+| 🤖 **Android** | [⬇️ **下载 .apk**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_arm64-v8a.apk) | — | arm64-v8a |
 
-> 🔒 所有桌面版发布文件均经过 **Minisign** 数字签名 (`.sig`)，完整 SHA-256 校验和见 [`SHA256SUMS.txt`](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/SHA256SUMS.txt)。
+> 🔒 所有桌面版发布文件均经过 **Minisign** 数字签名 (`.sig`)，完整 SHA-256 校验和见 [`SHA256SUMS.txt`](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/SHA256SUMS.txt)。
 
 ---
 
@@ -97,7 +97,7 @@ Cloakwire 是**完全免费的开源项目**。我们未购买昂贵的商业代
 
 校验安装包 SHA-256 示例：
 ```powershell
-(Get-FileHash Cloakwire_1.4.6_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
+(Get-FileHash Cloakwire_1.4.7_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
 ```
 
 ---

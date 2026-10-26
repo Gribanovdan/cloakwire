@@ -579,7 +579,7 @@ export default function MobileApp() {
   const connectWithSelection = async () => {
     if (activeBundle) {
       try {
-        const child = await api.getActiveChildConfig(activeBundle.subscriptionId);
+        const child = await api.getActiveChildConfig(activeBundle.subscriptionId, settings.routing);
         if (child.child_key !== activeBundle.childKey) {
           // Stale — Rust doesn't have the same active child any
           // more. Drop our cached selection and reconnect via

@@ -3,7 +3,7 @@
 # Signs all artifacts and produces latest.json for auto-updater
 
 param(
-    [string]$Version = "1.4.6",
+    [string]$Version = "1.4.7",
     [switch]$InstallPhone
 )
 
@@ -28,7 +28,7 @@ $env:PATH = "C:\Users\Public\cwdev\cargo\bin;C:\Program Files\nodejs;C:\Program 
 & npm.cmd run build
 if ($LASTEXITCODE -ne 0) { throw "Frontend build failed" }
 
-& npm.cmd run tauri build
+& npm.cmd run tauri build -- --ignore-version-mismatches
 if ($LASTEXITCODE -ne 0) { throw "Tauri build failed" }
 
 Copy-Item "C:\Users\Public\cwdev\target\release\bundle\nsis\Cloakwire_$Version`_x64-setup.exe" -Destination "$DistDir\" -Force
@@ -101,8 +101,8 @@ export PATH="/opt/homebrew/bin:`$HOME/.cargo/bin:`$PATH"
 export CARGO_TARGET_DIR="`$HOME/cloakwire-builds/cloakwire-v$Version/src-tauri/target"
 
 npm run build
-npm run tauri:build -- --target aarch64-apple-darwin --bundles app
-npm run tauri:build -- --target x86_64-apple-darwin --bundles app
+npm run tauri:build -- --ignore-version-mismatches --target aarch64-apple-darwin --bundles app
+npm run tauri:build -- --ignore-version-mismatches --target x86_64-apple-darwin --bundles app
 
 mkdir -p dist-release
 ditto -c -k --keepParent src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Cloakwire.app dist-release/Cloakwire_$Version`_aarch64.app.zip
@@ -155,7 +155,7 @@ if (Test-Path $msiFile) {
 
 $manifest = [ordered]@{
     version = $Version
-    notes = "## Cloakwire $Version\n\nFull multilingual localization (EN, RU, ZH), Adaptive Light & Dark theme engine, macOS one-time osascript elevation for TUN mode, Android Home Screen widgets, UI & performance polish."
+    notes = "## Cloakwire $Version\n\nReliable per-app routing on Windows, macOS, and Android; Android app icons in Routing; built-in Speed Test and native desktop connection notifications. Full changelog is available in EN, RU, and ZH on GitHub."
     pub_date = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
     platforms = $signatures
 }

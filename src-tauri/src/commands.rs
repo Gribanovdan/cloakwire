@@ -251,7 +251,7 @@ async fn start_ready_profile_inner(
             )
         }
         EngineKind::Singbox => {
-            return start_resolved_singbox_profile(app, pm, profile).await;
+            return start_resolved_singbox_profile(app, pm, profile, &input.routing).await;
         }
     };
 
@@ -304,16 +304,12 @@ async fn start_ready_profile_inner(
     Ok(ReadyProfileResult { status, routing })
 }
 
-async fn start_resolved_singbox_profile(
-    app: AppHandle,
-    pm: State<'_, Arc<ProcessManager>>,
-    profile: crate::subscriptions::ResolvedChildProfile,
-) -> AppResult<ReadyProfileResult> {
-    let mut config_value = profile.config.clone();
+fn prepare_ready_singbox_config(
+    profile: &crate::subscriptions::ResolvedChildProfile,
+    routing: &config::RoutingOptions,
+) -> AppResult<serde_json::Value> {
+    let mut config_value = config::ready::merge_ready_routing(profile.config.clone(), routing)?;
     crate::subscriptions::classify::sanitize_bundle_config(&mut config_value);
-    if let Some(route) = config_value.get_mut("route").and_then(|r| r.as_object_mut()) {
-        route.insert("find_process".into(), serde_json::Value::Bool(true));
-    }
     #[cfg(target_os = "macos")]
     if let Some(inbounds) = config_value.get_mut("inbounds").and_then(|i| i.as_array_mut()) {
         for inbound in inbounds {
@@ -328,6 +324,16 @@ async fn start_resolved_singbox_profile(
             }
         }
     }
+    Ok(config_value)
+}
+
+async fn start_resolved_singbox_profile(
+    app: AppHandle,
+    pm: State<'_, Arc<ProcessManager>>,
+    profile: crate::subscriptions::ResolvedChildProfile,
+    routing: &config::RoutingOptions,
+) -> AppResult<ReadyProfileResult> {
+    let config_value = prepare_ready_singbox_config(&profile, routing)?;
     let path = write_runtime_config(&app, &config_value)?;
     if pm.is_running().await {
         if let Err(error) = pm.stop().await {
@@ -454,6 +460,7 @@ pub struct ManagedLaunchResult {
     pub status: StatusReport,
     pub config_path: String,
     pub profile_count: usize,
+    pub routing: crate::xray::RoutingApplicability,
 }
 
 /// Resolve opaque subscription references, merge them with manual profiles,
@@ -487,6 +494,7 @@ pub async fn start_managed_singbox(
                     status: ready.status,
                     config_path: String::new(),
                     profile_count: 1,
+                    routing: ready.routing,
                 }),
                 Err(error) => {
                     let _ = crate::process::clear_system_proxy();
@@ -495,38 +503,21 @@ pub async fn start_managed_singbox(
                 }
             };
         }
-        let mut config_value = profile.config.clone();
-        if profile.engine == EngineKind::Singbox {
-            if let Some(route) = config_value.get_mut("route").and_then(|r| r.as_object_mut()) {
-                route.insert("find_process".into(), serde_json::Value::Bool(true));
-            }
-        }
+        let config_value = prepare_ready_singbox_config(&profile, &input.settings.routing)?;
         let path = write_runtime_config(&app, &config_value)?;
-        let (binary, args, controller_url) = match profile.engine {
-            EngineKind::Singbox => (
-                singbox::locate_binary(&app)?,
-                singbox::run_args(&path).to_vec(),
-                Some(format!(
-                    "http://{}",
-                    input.settings.clash_api.external_controller
-                )),
-            ),
-            EngineKind::Xray => (
-                xray::locate_binary(&app)?,
-                xray::run_args(&path).to_vec(),
-                None,
-            ),
-        };
         let status = pm
             .start_spec_with_app(
                 Some(&app),
                 LaunchSpec {
-                    engine: profile.engine,
-                    binary,
-                    args,
+                    engine: EngineKind::Singbox,
+                    binary: singbox::locate_binary(&app)?,
+                    args: singbox::run_args(&path).to_vec(),
                     env: Vec::new(),
                     config_path: path.clone(),
-                    controller_url,
+                    controller_url: Some(format!(
+                        "http://{}",
+                        input.settings.clash_api.external_controller
+                    )),
                     profile_key: Some(profile.key),
                     profile_name: Some(profile.name),
                     xray_stats: None,
@@ -537,6 +528,7 @@ pub async fn start_managed_singbox(
             status,
             config_path: path.display().to_string(),
             profile_count: 1,
+            routing: crate::xray::RoutingApplicability::default(),
         });
     }
 
@@ -559,6 +551,7 @@ pub async fn start_managed_singbox(
         status,
         config_path: path.display().to_string(),
         profile_count: outbounds.len(),
+        routing: crate::xray::RoutingApplicability::default(),
     })
 }
 
@@ -1223,6 +1216,43 @@ pub struct ProcessInfo {
     pub name: String,
 }
 
+fn process_name_from_path(path: &Path) -> AppResult<String> {
+    let is_app_bundle = path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("app"));
+    let name = if is_app_bundle {
+        let info = plist::Value::from_file(path.join("Contents/Info.plist"))
+            .map_err(|_| AppError::Validation("application bundle metadata is invalid".into()))?;
+        info.as_dictionary()
+            .and_then(|dictionary| dictionary.get("CFBundleExecutable"))
+            .and_then(plist::Value::as_string)
+            .map(str::to_owned)
+            .ok_or_else(|| AppError::Validation("application executable is missing".into()))?
+    } else {
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .map(str::to_owned)
+            .ok_or_else(|| AppError::Validation("selected executable name is invalid".into()))?
+    };
+    let name = name.trim();
+    if name.is_empty()
+        || name.chars().any(char::is_control)
+        || name.contains('/')
+        || name.contains('\\')
+    {
+        return Err(AppError::Validation(
+            "selected executable name is invalid".into(),
+        ));
+    }
+    Ok(name.to_owned())
+}
+
+#[tauri::command]
+pub async fn resolve_process_name(path: String) -> AppResult<String> {
+    process_name_from_path(Path::new(&path))
+}
+
 /// List currently running processes (name + pid).
 ///
 /// Used by the routing-rule "process name" picker so the user can
@@ -1321,8 +1351,13 @@ pub async fn apply_singbox_update(
 
 #[cfg(test)]
 mod managed_launch_tests {
-    use super::{deduplicate_outbounds, ManagedLaunchInput};
-    use crate::{config::GeneratorSettings, parser::Outbound};
+    use super::{deduplicate_outbounds, prepare_ready_singbox_config, ManagedLaunchInput};
+    use crate::{
+        config::{GeneratorSettings, RoutingOptions},
+        engine::EngineKind,
+        parser::Outbound,
+        subscriptions::ResolvedChildProfile,
+    };
     use serde_json::json;
 
     #[test]
@@ -1338,6 +1373,30 @@ mod managed_launch_tests {
         assert!(input.manual_outbounds.is_empty());
         assert_eq!(input.subscription_links, Some(Vec::new()));
         assert!(!input.select_all_subscription_links);
+    }
+
+    #[test]
+    fn ready_singbox_preparation_applies_routing_without_mutating_profile() {
+        let profile = ResolvedChildProfile {
+            key: "child".into(),
+            name: "Provider".into(),
+            engine: EngineKind::Singbox,
+            config: json!({
+                "outbounds": [{"type": "selector", "tag": "proxy", "outbounds": ["direct"]}, {"type": "direct", "tag": "direct"}],
+                "route": {"rules": []}
+            }),
+        };
+        let original = profile.config.clone();
+        let routing = RoutingOptions {
+            vpn_processes: vec!["chat.exe".into()],
+            final_outbound: "direct".into(),
+            ..RoutingOptions::default()
+        };
+        let prepared = prepare_ready_singbox_config(&profile, &routing).unwrap();
+        assert!(prepared["route"]["rules"].as_array().unwrap().iter().any(|rule| {
+            rule["process_name"] == json!(["chat.exe"]) && rule["outbound"] == "proxy"
+        }));
+        assert_eq!(profile.config, original);
     }
 
     #[test]
@@ -1399,6 +1458,25 @@ mod ready_profile_metadata_tests {
 #[cfg(test)]
 mod process_tests {
     use super::*;
+
+    #[test]
+    fn resolve_process_name_reads_macos_bundle_executable() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Example.app");
+        std::fs::create_dir_all(app.join("Contents")).unwrap();
+        std::fs::write(
+            app.join("Contents/Info.plist"),
+            r#"<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>CFBundleExecutable</key><string>Example Runtime</string></dict></plist>"#,
+        )
+        .unwrap();
+        assert_eq!(process_name_from_path(&app).unwrap(), "Example Runtime");
+
+        std::fs::write(app.join("Contents/Info.plist"), "not a plist").unwrap();
+        assert!(process_name_from_path(&app).is_err());
+        assert!(process_name_from_path(&temp.path().join("Missing.app")).is_err());
+    }
 
     /// Smoke test: the command runs without panicking and returns a
     /// well-formed list on a normal host. We don't assert specific

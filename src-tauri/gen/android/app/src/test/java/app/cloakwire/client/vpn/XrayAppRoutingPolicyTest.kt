@@ -1,4 +1,4 @@
-﻿package app.cloakwire.client.vpn
+package app.cloakwire.client.vpn
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -51,6 +51,13 @@ class XrayAppRoutingPolicyTest {
   fun `empty include mode fails instead of silently routing all apps`() {
     assertThrows(IllegalArgumentException::class.java) {
       XrayAppRoutingPolicy.create(emptyList(), "include", ownPackage)
+    }
+  }
+
+  @Test
+  fun `owner-only include mode fails instead of silently routing all apps`() {
+    assertThrows(IllegalArgumentException::class.java) {
+      XrayAppRoutingPolicy.create(listOf(ownPackage), "include", ownPackage)
     }
   }
 }

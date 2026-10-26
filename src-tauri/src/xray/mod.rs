@@ -74,7 +74,7 @@ mod tests {
 
     #[cfg(target_os = "windows")]
     #[test]
-    fn preparation_translates_process_rules_without_leaking_provider_secrets() {
+    fn preparation_translates_domain_rules_without_leaking_provider_secrets() {
         let provider = json!({
             "inbounds": [],
             "outbounds": [{"tag": "proxy", "protocol": "vless", "settings": {"vnext": [{"users": [{"id": "secret-uuid"}]}]}}]
@@ -83,9 +83,9 @@ mod tests {
         let mut routing = RoutingOptions::default();
         routing.rules = vec![json!({
             "id": "rule-1",
-            "label": "Chrome only",
+            "label": "Example domain",
             "enabled": true,
-            "matchers": {"process_name": ["chrome.exe"]},
+            "matchers": {"domain_suffix": ["example.test"]},
             "action": {"kind": "route", "outbound": "proxy"}
         })];
 
@@ -96,8 +96,8 @@ mod tests {
             "secret-uuid"
         );
         assert_eq!(
-            prepared.value["routing"]["rules"][0]["process"],
-            json!(["chrome.exe"])
+            prepared.value["routing"]["rules"][0]["domain"],
+            json!(["domain:example.test"])
         );
         assert_eq!(prepared.applicability.applied_rule_ids, vec!["rule-1"]);
         assert!(prepared.applicability.unavailable.is_empty());

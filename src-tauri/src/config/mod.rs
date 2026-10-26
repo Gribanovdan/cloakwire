@@ -20,6 +20,8 @@ use serde_json::{json, Map, Value};
 
 use crate::parser::Outbound;
 
+pub mod ready;
+
 /// How the client should intercept system traffic.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "snake_case")]
@@ -373,7 +375,7 @@ fn build_inbounds(settings: &GeneratorSettings) -> Vec<Value> {
     arr
 }
 
-fn build_route(settings: &GeneratorSettings) -> Value {
+pub(crate) fn build_route(settings: &GeneratorSettings) -> Value {
     // Routing 2.0: the user edits a list of rule objects (sing-box JSON
     // shape) and a list of rule-set objects. We pass them through
     // verbatim, with three small extras that we always prepend:

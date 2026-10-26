@@ -25,7 +25,6 @@ import { Button } from "../Button";
 import { api, TauriCommandError } from "@/lib/api";
 import type { ProcessInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { executableNameFromPath } from "@/lib/processSelection";
 import { useI18n } from "@/lib/i18n";
 
 interface Props {
@@ -90,11 +89,10 @@ export function ProcessPicker({ selected, onChange, disabled }: Props) {
       const pickedPath = Array.isArray(picked) ? picked[0] : picked;
       if (!pickedPath) return;
 
-      // Store only the executable basename. The generated routing rule
-      // uses process_name, so the user's local installation path never
-      // enters settings, logs, previews, or exported configs.
-      const name = executableNameFromPath(pickedPath);
-      if (!name) throw new Error("The selected file has no executable name");
+      // macOS bundles route by CFBundleExecutable, not by the `.app`
+      // directory name. Rust returns only the process name, so the
+      // installation path never enters settings or exported configs.
+      const name = await api.resolveProcessName(pickedPath);
 
       const key = SELECTED_KEY(name);
       if (!selectedSet.has(key)) onChange([...selected, name]);

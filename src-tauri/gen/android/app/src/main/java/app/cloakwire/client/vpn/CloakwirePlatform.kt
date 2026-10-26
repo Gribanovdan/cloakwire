@@ -104,12 +104,17 @@ class CloakwirePlatform(private val service: CloakwireVpnService) : PlatformInte
     // sockets anyway, and this keeps the webview/clash traffic direct).
     val includePkgs = options.includePackage.toList()
     if (includePkgs.isNotEmpty()) {
+      var applied = 0
       for (pkg in includePkgs) {
         try {
           builder.addAllowedApplication(pkg)
+          applied += 1
         } catch (e: PackageManager.NameNotFoundException) {
           Log.w(TAG, "include: package not installed: $pkg")
         }
+      }
+      if (applied == 0) {
+        throw IllegalStateException("None of the selected apps are installed")
       }
     } else {
       val exclude = options.excludePackage.toList()
@@ -396,10 +401,6 @@ class CloakwirePlatform(private val service: CloakwireVpnService) : PlatformInte
   override fun sendNotification(notification: Notification?) {
     // The service keeps its own foreground notification; core-issued
     // notifications (route changes etc.) are not surfaced in v1.
-  }
-
-  override fun cancelNotification(identifier: String?, typeID: Int) {
-    // Core-issued notifications are not surfaced, so there is nothing to cancel.
   }
 
   override fun startNeighborMonitor(listener: NeighborUpdateListener?) {

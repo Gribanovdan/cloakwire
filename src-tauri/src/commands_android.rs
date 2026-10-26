@@ -1179,32 +1179,32 @@ pub async fn set_active_child(
 /// straight to the Kotlin `vpn:start` plugin. For xray children the
 /// plugin extracts `outbounds[]` and rebuilds the rest. 2026-08-20.
 #[tauri::command]
-pub async fn get_active_child_config(app: AppHandle, id: String) -> AppResult<ActiveChildConfig> {
+pub async fn get_active_child_config(
+    app: AppHandle,
+    id: String,
+    routing: crate::config::RoutingOptions,
+) -> AppResult<ActiveChildConfig> {
     let service = subscription_service(&app)?;
     #[cfg_attr(not(target_os = "android"), allow(unused_mut))]
     let mut result = service.get_active_child_config(&id).await?;
-    // Android supports both engines. Xray configs need the protected
-    // dialer splice; sing-box configs are handed to the in-process libbox
-    // engine and receive Android TUN fields in the Kotlin service.
+    // Apply local routing before the Android service adds its TUN fields.
     #[cfg(target_os = "android")]
     {
         use crate::subscriptions::EngineKind;
-        match result.engine {
+        let parsed: serde_json::Value = serde_json::from_str(&result.config).map_err(|e| {
+            AppError::Unsupported(format!("bundle config is not valid JSON: {e}"))
+        })?;
+        let prepared = match result.engine {
             EngineKind::Xray => {
-                let parsed: serde_json::Value =
-                    serde_json::from_str(&result.config).map_err(|e| {
-                        AppError::Unsupported(format!("bundle config is not valid JSON: {e}"))
-                    })?;
-                let normalized = crate::xray_config::normalize_bundle(parsed)?;
-                result.config = serde_json::to_string(&normalized).map_err(AppError::Serde)?;
+                let merged = crate::xray_routing::merge_routing(parsed, &routing)?;
+                crate::xray_config::normalize_bundle(merged.value)?
             }
-            EngineKind::Singbox => {
-                // The Android service runs this configuration through
-                // the bundled in-process libbox engine. Per-app TUN
-                // fields are applied by the Kotlin service at launch.
-            }
-        }
+            EngineKind::Singbox => crate::config::ready::merge_ready_routing(parsed, &routing)?,
+        };
+        result.config = serde_json::to_string(&prepared).map_err(AppError::Serde)?;
     }
+    #[cfg(not(target_os = "android"))]
+    let _ = routing;
     Ok(result)
 }
 

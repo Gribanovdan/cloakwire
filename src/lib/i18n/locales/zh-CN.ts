@@ -68,6 +68,7 @@ export const zhCN: TranslationSchema = {
   home: {
     title: "总览",
     subtitle: "高性能加密隧道",
+    xrayRoutingWarning: "已连接，但以下规则在 Xray 系统代理模式下不可用：{rules}。进程规则需要 sing-box TUN；支持的域名规则仍然有效。",
     tapToConnect: "点击连接",
     tapToDisconnect: "点击断开",
     untrustedNetwork: "连接已断开，当前网络不受保护",

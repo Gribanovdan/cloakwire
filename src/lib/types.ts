@@ -162,10 +162,22 @@ export interface DeviceHwidInfo {
   custom: string | null;
 }
 
+export interface UnavailableRoutingRule {
+  rule_id: string;
+  label: string;
+  reason: "process_matcher" | "unsupported_matcher" | "unsupported_action" | "missing_outbound_tag" | "missing_balancer_tag";
+}
+
+export interface RoutingApplicability {
+  applied_rule_ids: string[];
+  unavailable: UnavailableRoutingRule[];
+}
+
 export interface ManagedLaunchResult {
   status: StatusReport;
   config_path: string;
   profile_count: number;
+  routing: RoutingApplicability;
 }
 
 export interface LegacySubscriptionInput {

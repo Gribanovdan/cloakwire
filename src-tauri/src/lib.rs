@@ -53,6 +53,9 @@ pub mod updates;
 pub mod tray;
 #[cfg(not(target_os = "android"))]
 pub mod xray;
+#[cfg(target_os = "android")]
+#[path = "xray/routing.rs"]
+pub mod xray_routing;
 pub mod xray_config;
 
 #[cfg(not(target_os = "android"))]
@@ -288,6 +291,7 @@ pub fn run() {
             commands::apply_system_proxy,
             commands::clear_system_proxy,
             commands::list_processes,
+            commands::resolve_process_name,
             commands::check_singbox_update,
             commands::apply_singbox_update,
             commands::check_app_update,

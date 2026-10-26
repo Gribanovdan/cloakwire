@@ -66,6 +66,7 @@ export const en = {
   home: {
     title: "Overview",
     subtitle: "High-performance encrypted tunnel",
+    xrayRoutingWarning: "Connected, but these routing rules are unavailable in Xray system-proxy mode: {rules}. Process rules require sing-box TUN; supported domain rules remain active.",
     tapToConnect: "Tap to connect",
     tapToDisconnect: "Tap to disconnect",
     untrustedNetwork: "Disconnected. Your connection is not protected",

@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.7] - 2026-10-26
+
+### English
+- **Reliable per-app routing**: fixed application-based routing on Windows, macOS, and Android. Include/exclude selections are now applied consistently, macOS `.app` names are normalized, and unsupported Xray rules produce an explicit warning.
+- **Android routing improvements**: added application icons to the Routing tab and safe handling of selected packages that are no longer installed.
+- **Speed Test and notifications**: added a built-in Speed Test tab and native desktop notifications for connection events.
+
+### Русский
+- **Стабильный роутинг по приложениям**: исправлена маршрутизация на Windows, macOS и Android. Режимы включения и исключения применяются согласованно, имена `.app` на macOS нормализуются, а для неподдерживаемых правил Xray показывается явное предупреждение.
+- **Улучшения роутинга на Android**: добавлены иконки приложений на вкладку «Роутинг» и безопасная обработка удалённых пакетов.
+- **Speed Test и уведомления**: добавлены встроенная проверка скорости и нативные уведомления о событиях подключения на десктопе.
+
+### 简体中文
+- **可靠的应用分流**：修复了 Windows、macOS 和 Android 上按应用路由的问题。包含与排除规则现在会一致生效，macOS 的 `.app` 名称会被规范化，Xray 不支持的规则会显示明确警告。
+- **Android 分流改进**：在“路由”页面添加应用图标，并安全处理已卸载的所选应用。
+- **测速与通知**：新增内置 Speed Test 页面和桌面端原生连接事件通知。
+
+---
+
 ## [1.4.6] - 2026-10-13
 
 ### 🍏 macOS Administrator Privilege Elevation (osascript & SUID)

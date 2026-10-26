@@ -23,6 +23,7 @@ import type {
   ProcessInfo,
   ProxiesResponse,
   RefreshSubscriptionResult,
+  RoutingOptions,
   SingboxVersion,
   StatusReport,
   SubscriptionLinkRef,
@@ -158,6 +159,7 @@ export const api = {
   // so the user can click on an .exe instead of typing its name.
   // Returns an empty array outside the Tauri shell (vite dev preview).
   listProcesses: () => call<ProcessInfo[]>("list_processes"),
+  resolveProcessName: (path: string) => call<string>("resolve_process_name", { path }),
 
   // sing-box auto-update (separate from the Tauri app-shell
   // updater). `checkSingboxUpdate` queries the GitHub releases
@@ -222,8 +224,8 @@ export const api = {
     }),
   setActiveChild: (id: string, childKey: string) =>
     call<SubscriptionSummary>("set_active_child", { id, childKey }),
-  getActiveChildConfig: (id: string) =>
-    call<ActiveChildConfig>("get_active_child_config", { id }),
+  getActiveChildConfig: (id: string, routing: RoutingOptions) =>
+    call<ActiveChildConfig>("get_active_child_config", { id, routing }),
   migrateLegacySubscriptions: (
     inputs: LegacySubscriptionInput[],
   ) =>

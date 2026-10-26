@@ -27,16 +27,16 @@ Windows · macOS · Android · Rust/Tauri & React · VLESS Reality · Hysteria 2
 
 ---
 
-## ⚡ Загрузка релизов (v1.4.6)
+## ⚡ Загрузка релизов (v1.4.7)
 
 | Платформа | Рекомендуемый установщик | Альтернативный пакет | Архитектура |
 |---|---|---|---|
-| 🪟 **Windows** | [⬇️ **Скачать .exe** (Инсталлятор)](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64-setup.exe) | [⬇️ **Скачать .msi**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64_en-US.msi) | x64 (Intel / AMD) |
-| 🍏 **macOS Apple Silicon** | [⬇️ **Скачать .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_aarch64.dmg) | [⬇️ **Скачать .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_aarch64.app.zip) | M1 / M2 / M3 / M4 |
-| 🍏 **macOS Intel** | [⬇️ **Скачать .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64.dmg) | [⬇️ **Скачать .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_x64.app.zip) | x86_64 |
-| 🤖 **Android** | [⬇️ **Скачать .apk**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_arm64-v8a.apk) | — | arm64-v8a |
+| 🪟 **Windows** | [⬇️ **Скачать .exe** (Инсталлятор)](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64-setup.exe) | [⬇️ **Скачать .msi**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64_en-US.msi) | x64 (Intel / AMD) |
+| 🍏 **macOS Apple Silicon** | [⬇️ **Скачать .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_aarch64.dmg) | [⬇️ **Скачать .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_aarch64.app.zip) | M1 / M2 / M3 / M4 |
+| 🍏 **macOS Intel** | [⬇️ **Скачать .dmg**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64.dmg) | [⬇️ **Скачать .app.zip**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_x64.app.zip) | x86_64 |
+| 🤖 **Android** | [⬇️ **Скачать .apk**](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/Cloakwire_1.4.7_arm64-v8a.apk) | — | arm64-v8a |
 
-> 🔒 Все бинарные сборки для десктопа подписаны криптографическим ключом **Minisign** (`.sig`). Контрольные суммы опубликованы в [`SHA256SUMS.txt`](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/SHA256SUMS.txt).
+> 🔒 Все бинарные сборки для десктопа подписаны криптографическим ключом **Minisign** (`.sig`). Контрольные суммы опубликованы в [`SHA256SUMS.txt`](https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.7/SHA256SUMS.txt).
 
 ---
 
@@ -99,7 +99,7 @@ Cloakwire — **бесплатный открытый проект**. Мы не 
 Проверить целостность файла перед запуском можно по хешу SHA-256:
 ```powershell
 # Проверка хеша инсталлятора Windows:
-(Get-FileHash Cloakwire_1.4.6_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
+(Get-FileHash Cloakwire_1.4.7_x64-setup.exe -Algorithm SHA256).Hash.ToLower()
 ```
 
 ---

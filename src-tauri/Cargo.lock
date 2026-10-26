@@ -635,7 +635,7 @@ dependencies = [
 
 [[package]]
 name = "cloakwire"
-version = "1.4.6"
+version = "1.4.7"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -646,6 +646,7 @@ dependencies = [
  "log",
  "minisign",
  "percent-encoding",
+ "plist",
  "prost",
  "protoc-bin-vendored",
  "reqwest 0.12.28",

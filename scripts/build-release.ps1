@@ -49,7 +49,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
         $pkg = Get-Content -LiteralPath $pkgJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
         $Version = $pkg.version
     } else {
-        $Version = '1.4.6'
+        $Version = '1.4.7'
     }
 }
 

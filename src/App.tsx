@@ -328,7 +328,7 @@ function loadSettings(): GeneratorSettings {
 
 export default function App() {
   const { t } = useI18n();
-  const [appVersion, setAppVersion] = useState("1.4.6");
+  const [appVersion, setAppVersion] = useState("1.4.7");
   const [binary, setBinary] = useState<BinaryInfo | null>(null);
   const [version, setVersion] = useState<SingboxVersion | null>(null);
   const [xrayVersion, setXrayVersion] = useState<string | null>(null);
@@ -343,6 +343,7 @@ export default function App() {
   const [configPath, setConfigPath] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [routingWarning, setRoutingWarning] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>(readStoredTab);
   // Tag of the outbound that the running `proxy` selector is
   // currently routing through. Comes from `GET /proxies/proxy` on
@@ -725,6 +726,7 @@ export default function App() {
         : settings;
     setBusy(true);
     setError(null);
+    setRoutingWarning(null);
     try {
       // 1. Always generate a fresh config from the imported profiles
       //    + current settings. The config we start with MUST include
@@ -734,6 +736,11 @@ export default function App() {
         ...selection,
         settings: effectiveSettings,
       });
+      if (managed.routing.unavailable.length > 0) {
+        setRoutingWarning(t("home.xrayRoutingWarning", {
+          rules: managed.routing.unavailable.map((rule) => rule.label).join(", "),
+        }));
+      }
       const path = managed.config_path;
       setConfigPath(path);
       const next = managed.status;
@@ -770,7 +777,7 @@ export default function App() {
     } finally {
       setBusy(false);
     }
-  }, [manualProfiles, profiles, selectedIndex, settings, refresh]);
+  }, [manualProfiles, profiles, selectedIndex, settings, refresh, t]);
 
   // Latest onStart, for handlers that need to call it after they've
   // already scheduled a state update (so the new settings object
@@ -815,6 +822,7 @@ export default function App() {
     if (!inTauri) return;
     setBusy(true);
     setError(null);
+    setRoutingWarning(null);
     try {
       // 1. Clear the system proxy FIRST. sing-box is about to die and
       //    Windows DNS / WebView would otherwise sit without a working
@@ -1333,6 +1341,12 @@ export default function App() {
           >
             {t("settings.reconnectNow")}
           </Button>
+        </div>
+      )}
+
+      {routingWarning && (
+        <div role="status" className="relative z-10 border-b border-amber-500/30 bg-amber-500/10 px-6 py-2 text-xs text-amber-700 dark:text-amber-300">
+          {routingWarning}
         </div>
       )}
 

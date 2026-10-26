@@ -31,6 +31,7 @@ import { PresetPicker } from "./PresetPicker";
 import { RuleSetsPanel } from "./RuleSetsPanel";
 import { ProcessPicker } from "./ProcessPicker";
 import { newRuleId } from "@/lib/presets";
+import { applyProcessSelection } from "@/lib/processSelection";
 import { useI18n } from "@/lib/i18n";
 import type { CustomRule, CustomRuleSet, GeneratorSettings, Outbound, RoutingOptions } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -171,7 +172,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
         description={t("routing.appsViaVpnDesc")}
         accent="vpn"
         selected={r.vpn_processes}
-        onChange={(next) => updateRouting({ vpn_processes: next })}
+        onChange={(next) => updateRouting(applyProcessSelection(r, "vpn", next))}
         disabled={!isTunActive}
       />
       <ProcessPickerCard
@@ -180,7 +181,7 @@ export function RoutingTab({ profiles, settings, onSettingsChange }: Props) {
         description={t("routing.appsDirectDesc")}
         accent="direct"
         selected={r.direct_processes}
-        onChange={(next) => updateRouting({ direct_processes: next })}
+        onChange={(next) => updateRouting(applyProcessSelection(r, "direct", next))}
         disabled={!isTunActive}
       />
 
