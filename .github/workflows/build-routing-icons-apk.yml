@@ -39,6 +39,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          cache-on-failure: true
       - name: Install Android tools
         run: |
           set -euo pipefail
@@ -48,7 +49,13 @@ jobs:
           echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> "$GITHUB_ENV"
           echo "CC_aarch64_linux_android=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> "$GITHUB_ENV"
           echo "AR_aarch64_linux_android=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> "$GITHUB_ENV"
+      - uses: actions/cache/restore@v4
+        id: libbox-cache
+        with:
+          path: src-tauri/gen/android/app/libs/libbox.aar
+          key: libbox-ff40cf9-arm64-go1.26.3-ndk28
       - name: Build pinned libbox for ARM64
+        if: steps.libbox-cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
           go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.12
@@ -67,6 +74,11 @@ jobs:
             -ldflags="-X github.com/sagernet/sing-box/constant.Version=ff40cf9+android -X runtime.godebugDefault=multipathtcp=0,tlssha1=1,tlsunsafeekm=1 -checklinkname=0 -s -w -buildid=" \
             -tags="with_gvisor,with_quic,with_wireguard,with_utls,with_naive_outbound,badlinkname,tfogo_checklinkname0,with_xhttp,with_awg,with_lx_command,with_lx_idle_suspend,with_openvpn,with_openconnect,with_clash_api" \
             ./experimental/libbox
+      - uses: actions/cache/save@v4
+        if: steps.libbox-cache.outputs.cache-hit != 'true'
+        with:
+          path: src-tauri/gen/android/app/libs/libbox.aar
+          key: libbox-ff40cf9-arm64-go1.26.3-ndk28
       - name: Stage unchanged Xray binary and geodata from upstream release
         run: |
           set -euo pipefail
@@ -86,7 +98,10 @@ jobs:
                   print(f'Staged {target}: {target.stat().st_size} bytes')
           PY
       - name: Install frontend dependencies
-        run: npm ci
+        run: |
+          npm ci
+          # Match the minor versions of the crates pinned in Cargo.lock.
+          npm install --no-save --package-lock=false '@tauri-apps/api@~2.11.0' '@tauri-apps/plugin-notification@~2.4.0'
       - name: Generate Tauri Android integration
         run: |
           set -euo pipefail
