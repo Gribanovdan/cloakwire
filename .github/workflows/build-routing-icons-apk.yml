@@ -1,0 +1,124 @@
+name: Build routing icons APK
+
+on:
+  push:
+    branches: [build/android-routing-icons]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      NDK_VERSION: 28.0.13004108
+      CARGO_TARGET_DIR: ${{ github.workspace }}/src-tauri/target
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.3'
+          cache: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Install Android tools
+        run: |
+          set -euo pipefail
+          sdkmanager "ndk;$NDK_VERSION" "platforms;android-36" "build-tools;36.0.0"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+          echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> "$GITHUB_ENV"
+          echo "CC_aarch64_linux_android=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang" >> "$GITHUB_ENV"
+          echo "AR_aarch64_linux_android=$ANDROID_HOME/ndk/$NDK_VERSION/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar" >> "$GITHUB_ENV"
+      - name: Build pinned libbox for ARM64
+        run: |
+          set -euo pipefail
+          go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.12
+          go install github.com/sagernet/gomobile/cmd/gobind@v0.1.12
+          git init "$RUNNER_TEMP/sing-box-src"
+          cd "$RUNNER_TEMP/sing-box-src"
+          git remote add origin https://github.com/Leadaxe/sing-box-lx.git
+          git fetch --depth 1 origin ff40cf98cb80ca6c9e9ae823ad392045cb4d23de
+          git checkout FETCH_HEAD
+          git submodule update --init --recursive --depth 1
+          mkdir -p "$GITHUB_WORKSPACE/src-tauri/gen/android/app/libs"
+          gomobile bind -v \
+            -o "$GITHUB_WORKSPACE/src-tauri/gen/android/app/libs/libbox.aar" \
+            -target android/arm64 -androidapi 24 \
+            -javapkg=io.nekohasekai -libname=box -trimpath -buildvcs=false \
+            -ldflags="-X github.com/sagernet/sing-box/constant.Version=ff40cf9+android -X runtime.godebugDefault=multipathtcp=0,tlssha1=1,tlsunsafeekm=1 -checklinkname=0 -s -w -buildid=" \
+            -tags="with_gvisor,with_quic,with_wireguard,with_utls,with_naive_outbound,badlinkname,tfogo_checklinkname0,with_xhttp,with_awg,with_lx_command,with_lx_idle_suspend,with_openvpn,with_openconnect,with_clash_api" \
+            ./experimental/libbox
+      - name: Stage unchanged Xray binary and geodata from upstream release
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 \
+            https://github.com/markwhite7881-cpu/cloakwire/releases/download/v1.4.6/Cloakwire_1.4.6_arm64-v8a.apk \
+            -o "$RUNNER_TEMP/reference.apk"
+          echo "0657e2659fbce0baf695343c823b00ff689f8df3011f599e91ee9bf9e9ab64e5  $RUNNER_TEMP/reference.apk" | sha256sum --check
+          python3 - <<'PY'
+          import os, zipfile
+          from pathlib import Path
+          root = Path('src-tauri/gen/android/app/src/main')
+          with zipfile.ZipFile(Path(os.environ['RUNNER_TEMP']) / 'reference.apk') as apk:
+              for name in ['lib/arm64-v8a/libxray.so', 'assets/geoip.dat', 'assets/geosite.dat']:
+                  target = root / (name.replace('lib/', 'jniLibs/', 1) if name.startswith('lib/') else name)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(apk.read(name))
+                  print(f'Staged {target}: {target.stat().st_size} bytes')
+          PY
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Generate Tauri Android integration
+        run: |
+          set -euo pipefail
+          npx tauri android init --ci --skip-targets-install
+          # Restore the project's custom Kotlin/Gradle files after generating
+          # machine-specific Tauri settings and plugin source paths.
+          git restore src-tauri/gen/android
+          # The Windows-only DLL resource is unused on Android.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('src-tauri/tauri.android.conf.json')
+          config = json.loads(path.read_text())
+          config['bundle']['resources'] = []
+          path.write_text(json.dumps(config))
+          PY
+      - name: Test frontend
+        run: npm test
+      - name: Build signed debug APK with embedded frontend
+        run: npx tauri android build --debug --target aarch64 --apk --ci --verbose
+      - name: Test Kotlin and verify APK
+        run: |
+          set -euo pipefail
+          cd src-tauri/gen/android
+          bash gradlew :app:testArm64DebugUnitTest -x :app:rustBuildArm64Debug --no-daemon
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p apk-output
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' -path '*/debug/*' | head -n 1)
+          test -n "$APK"
+          cp "$APK" apk-output/Cloakwire_1.4.6_PR2_arm64_debug.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs apk-output/*.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/*.apk
+          sha256sum apk-output/*.apk > apk-output/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Cloakwire-PR2-arm64-debug
+          path: apk-output/
+          if-no-files-found: error
+          retention-days: 14
