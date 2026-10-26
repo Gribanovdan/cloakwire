@@ -29,7 +29,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: tauri: https://asset.localhost http://asset.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost; frame-src 'none'; object-src 'none'; base-uri 'self'"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: tauri: https://asset.localhost http://asset.localhost; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://speed.cloudflare.com; frame-src 'none'; object-src 'none'; base-uri 'self'"
     }
   },
   "bundle": {

@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   calculateJitter,
   loadSpeedTestHistory,
@@ -6,6 +8,19 @@ import {
   clearSpeedTestHistory,
   type SpeedTestResult,
 } from "./speedtest";
+
+describe("speed test connectivity", () => {
+  it("allows Cloudflare endpoints through the application CSP", () => {
+    const config = JSON.parse(
+      readFileSync(resolve(process.cwd(), "src-tauri/tauri.conf.json"), "utf8"),
+    );
+    const connectSrc = config.app.security.csp
+      .split(";")
+      .find((directive: string) => directive.trim().startsWith("connect-src "));
+
+    expect(connectSrc).toContain("https://speed.cloudflare.com");
+  });
+});
 
 describe("speedtest", () => {
   let mockStore: Record<string, string> = {};
