@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Plus, Search, X } from "lucide-react";
+import { AppWindow, ChevronDown, Plus, Search, X } from "lucide-react";
 import { vpnListApps, type AppEntry } from "@/lib/vpn";
 import { newRuleId } from "@/lib/presets";
 import { cn } from "@/lib/utils";
@@ -119,6 +119,30 @@ export function RoutingScreen({
 }
 
 // ---- Per-app VPN --------------------------------------------------
+
+function AppIcon({ src }: { src?: string | null }) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  return (
+    <span
+      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg"
+      aria-hidden
+    >
+      {src && src !== failedSrc ? (
+        <img
+          src={src}
+          alt=""
+          className="h-full w-full object-contain"
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailedSrc(src)}
+        />
+      ) : (
+        <AppWindow className="h-6 w-6 text-muted-foreground" />
+      )}
+    </span>
+  );
+}
 
 function PerAppSection({
   mode,
@@ -264,6 +288,7 @@ function PerAppSection({
                         <button
                           type="button"
                           onClick={() => toggle(a.packageName)}
+                          aria-pressed={selected.has(a.packageName)}
                           className="flex w-full items-center gap-3 px-3.5 py-2.5 text-left active:bg-secondary/60 transition"
                         >
                           <span
@@ -279,13 +304,9 @@ function PerAppSection({
                               <span className="h-2 w-2 rounded-sm bg-zinc-950" />
                             )}
                           </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-xs font-medium text-foreground">
-                              {a.label}
-                            </span>
-                            <span className="block truncate font-mono text-[10px] text-muted-foreground">
-                              {a.packageName}
-                            </span>
+                          <AppIcon src={a.icon} />
+                          <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+                            {a.label}
                           </span>
                         </button>
                       </li>

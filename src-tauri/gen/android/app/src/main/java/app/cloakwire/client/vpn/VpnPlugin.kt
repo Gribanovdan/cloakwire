@@ -6,8 +6,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.net.VpnService
 import android.os.Build
+import android.util.Base64
 import android.webkit.WebView
 import androidx.activity.result.ActivityResult
 import app.cloakwire.client.widget.CloakwireWidgetUpdater
@@ -21,6 +24,7 @@ import app.tauri.plugin.Invoke
 import app.tauri.plugin.Plugin
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import kotlin.concurrent.thread
 
 @InvokeArg
@@ -237,6 +241,7 @@ class VpnPlugin(private val activity: Activity) : Plugin(activity) {
           obj.put("label", label)
           obj.put("system", flags.first)
           obj.put("hasInternet", flags.second)
+          obj.put("icon", appIconDataUrl(pm, pkg))
           arr.put(obj)
         }
         val ret = JSObject()
@@ -247,6 +252,23 @@ class VpnPlugin(private val activity: Activity) : Plugin(activity) {
       }
     }
   }
+
+  /** Rasterize bitmap, vector and adaptive icons at a bounded size for the WebView. */
+  private fun appIconDataUrl(pm: PackageManager, packageName: String): String? =
+    runCatching {
+      val drawable = pm.getApplicationIcon(packageName)
+      val bitmap = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
+      try {
+        drawable.setBounds(0, 0, bitmap.width, bitmap.height)
+        drawable.draw(Canvas(bitmap))
+        ByteArrayOutputStream().use { output ->
+          bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+          "data:image/png;base64," + Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+        }
+      } finally {
+        bitmap.recycle()
+      }
+    }.getOrNull()
 
   // ---- Android subscription HTTP transport -----------------------------
 

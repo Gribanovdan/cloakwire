@@ -1,11 +1,8 @@
-export type PickerMode = 'all' | 'include' | 'exclude';
+import type { AppEntry } from '@/lib/vpn';
 
-export interface AppEntry {
-  label: string;
-  packageName: string;
-  hasInternet: boolean;
-  system: boolean;
-}
+export type { AppEntry } from '@/lib/vpn';
+
+export type PickerMode = 'all' | 'include' | 'exclude';
 
 export interface SourceInputClassification {
   kind: 'empty' | 'share' | 'subscription' | 'invalid';
