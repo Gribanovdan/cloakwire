@@ -25,6 +25,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: gradle
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
@@ -109,6 +110,9 @@ jobs:
           # Restore the project's custom Kotlin/Gradle files after generating
           # machine-specific Tauri settings and plugin source paths.
           git restore src-tauri/gen/android
+          # init also creates untracked buildSrc classes at the new package
+          # path; the repository already has these classes in the root package.
+          rm -rf src-tauri/gen/android/buildSrc/src/main/java/app
           # The Windows-only DLL resource is unused on Android.
           python3 - <<'PY'
           import json
