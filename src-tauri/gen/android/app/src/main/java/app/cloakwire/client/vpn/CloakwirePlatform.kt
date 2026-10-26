@@ -398,6 +398,10 @@ class CloakwirePlatform(private val service: CloakwireVpnService) : PlatformInte
     // notifications (route changes etc.) are not surfaced in v1.
   }
 
+  override fun cancelNotification(identifier: String?, typeID: Int) {
+    // Core-issued notifications are not surfaced, so there is nothing to cancel.
+  }
+
   override fun startNeighborMonitor(listener: NeighborUpdateListener?) {
     throw Exception("neighbor monitor is not supported on Android")
   }
