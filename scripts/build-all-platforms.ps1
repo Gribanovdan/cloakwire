@@ -65,7 +65,7 @@ if ($InstallPhone) {
 # 3. macOS Build (via Mac mini SSH)
 Write-Host "`n[3/4] Building macOS (Apple Silicon + Intel via Mac mini)..." -ForegroundColor Yellow
 $sshKey = "C:\Users\Public\cwdev\.ssh\mavis_hermes"
-$macHost = "alexeyka@100.97.167.112"
+$macHost = "alexeyka@server"
 $sshExe = "C:\Program Files\Git\usr\bin\ssh.exe"
 $scpExe = "C:\Program Files\Git\usr\bin\scp.exe"
 
@@ -74,12 +74,22 @@ git archive -o "$DistDir\v$Version-source.tar.gz" HEAD
 
 & $sshExe -i $sshKey -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $macHost @"
 set -e
+if [ -d "`$HOME/cloakwire-builds/cloakwire-v$Version" ]; then
+  mkdir -p /tmp/cloakwire-cache
+  cp -r `$HOME/cloakwire-builds/cloakwire-v$Version/src-tauri/binaries /tmp/cloakwire-cache/ 2>/dev/null || true
+  cp -R `$HOME/cloakwire-builds/cloakwire-v$Version/node_modules /tmp/cloakwire-cache/ 2>/dev/null || true
+  rm -rf `$HOME/cloakwire-builds/cloakwire-v$Version
+fi
 mkdir -p `$HOME/cloakwire-builds/cloakwire-v$Version
 cd `$HOME/cloakwire-builds/cloakwire-v$Version
 tar -xzf /tmp/v$Version-source.tar.gz
 rm -f src-tauri/.cargo/config.toml
 mkdir -p src-tauri/binaries
-if [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.5/src-tauri/binaries" ]; then
+if [ -d "/tmp/cloakwire-cache/binaries" ]; then
+  cp -r /tmp/cloakwire-cache/binaries/* src-tauri/binaries/
+elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.6/src-tauri/binaries" ]; then
+  cp -r `$HOME/cloakwire-builds/cloakwire-v1.4.6/src-tauri/binaries/* src-tauri/binaries/
+elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.5/src-tauri/binaries" ]; then
   cp -r `$HOME/cloakwire-builds/cloakwire-v1.4.5/src-tauri/binaries/* src-tauri/binaries/
 elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.4/src-tauri/binaries" ]; then
   cp -r `$HOME/cloakwire-builds/cloakwire-v1.4.4/src-tauri/binaries/* src-tauri/binaries/
@@ -88,7 +98,11 @@ elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.3/src-tauri/binaries" ]; then
 elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.3.2-fixed/src-tauri/binaries" ]; then
   cp -r `$HOME/cloakwire-builds/cloakwire-v1.3.2-fixed/src-tauri/binaries/* src-tauri/binaries/
 fi
-if [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.5/node_modules" ]; then
+if [ -d "/tmp/cloakwire-cache/node_modules" ]; then
+  cp -R /tmp/cloakwire-cache/node_modules ./
+elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.6/node_modules" ]; then
+  cp -R `$HOME/cloakwire-builds/cloakwire-v1.4.6/node_modules ./
+elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.5/node_modules" ]; then
   cp -R `$HOME/cloakwire-builds/cloakwire-v1.4.5/node_modules ./
 elif [ -d "`$HOME/cloakwire-builds/cloakwire-v1.4.4/node_modules" ]; then
   cp -R `$HOME/cloakwire-builds/cloakwire-v1.4.4/node_modules ./
