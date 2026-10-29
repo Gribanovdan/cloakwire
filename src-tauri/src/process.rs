@@ -379,6 +379,24 @@ impl ProcessManager {
                 .await;
                 return Err(AppError::TunCapabilities(message));
             }
+            // Windows only: a sing-box that was killed never removes its
+            // Wintun adapter, so the device stays registered and the next
+            // start fails while creating the TUN interface with
+            // ERROR_FILE_EXISTS. Clear the leftover before starting.
+            #[cfg(windows)]
+            {
+                if let Some(interface) =
+                    crate::platform::windows::tun_interface_name(&spec.config_path)
+                {
+                    if let Err(error) = crate::platform::windows::cleanup_tun_adapter(&interface) {
+                        self.push_log(
+                            LogStream::System,
+                            format!("could not remove TUN adapter '{interface}': {error}"),
+                        )
+                        .await;
+                    }
+                }
+            }
         }
         let mut cmd = Command::new(&spec.binary);
         cmd.args(&spec.args)
@@ -826,6 +844,14 @@ impl ProcessManager {
             return;
         }
 
+        // Captured before the state is cleared below: the post-exit cleanup
+        // needs the config to learn the TUN interface name.
+        #[cfg(windows)]
+        let (engine, config_path) = (
+            self.status.lock().await.engine,
+            self.current_config.lock().await.clone(),
+        );
+
         if let Some(ChildSlot { mut child, .. }) = self.aux_child.lock().await.take() {
             let _ = child.start_kill();
         }
@@ -890,6 +916,28 @@ impl ProcessManager {
         #[cfg(not(target_os = "android"))]
         {
             let _ = crate::killswitch::disarm_kill_switch();
+        }
+
+        // Windows only: a sing-box that is killed never removes its Wintun
+        // adapter, so the device stays registered and the next start fails
+        // while creating the TUN interface with ERROR_FILE_EXISTS ("Cannot
+        // create a file when that file already exists"). The child is gone
+        // at this point, so the leftover can be removed right away.
+        #[cfg(windows)]
+        {
+            if engine == Some(EngineKind::Singbox) {
+                if let Some(config_path) = config_path.as_deref() {
+                    if let Some(interface) =
+                        crate::platform::windows::tun_interface_name(config_path)
+                    {
+                        if let Err(error) =
+                            crate::platform::windows::cleanup_tun_adapter(&interface)
+                        {
+                            log::warn!("could not remove TUN adapter '{interface}': {error}");
+                        }
+                    }
+                }
+            }
         }
     }
 
